@@ -254,6 +254,59 @@ input[type=text],input[type=number],select{
 .sempty{color:var(--muted);font-size:.95rem;margin:4px 0}
 .xmsg{min-height:1.3em;margin:8px 0 0;font-size:.9rem;color:var(--muted)}
 
+/* ---------- payment sheet ---------- */
+.modal{position:fixed;inset:0;z-index:10;background:rgba(10,20,14,.55);display:flex;align-items:flex-end;justify-content:center}
+.modal[hidden]{display:none}
+@media (min-width:640px){.modal{align-items:center;padding:24px}}
+.sheet{
+  width:100%;max-width:520px;max-height:100%;overflow-y:auto;overscroll-behavior:contain;
+  background:var(--bg);color:var(--ink);border-radius:18px 18px 0 0;
+  padding:18px 18px 0;padding-top:calc(18px + env(safe-area-inset-top,0px));
+  display:flex;flex-direction:column;
+}
+@media (min-width:640px){.sheet{border-radius:18px;padding-top:18px;max-height:calc(100vh - 48px)}}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mhead h2{margin:0;font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
+.mclose{width:36px;height:36px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:1.2rem;line-height:1;cursor:pointer}
+.paysum{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.paysum div{background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:10px 12px}
+.paysum span{display:block;font-size:.85rem;color:#6d6857}
+.paysum strong{font-family:var(--mono);font-size:1.45rem;font-weight:600;letter-spacing:-.02em}
+.paystatus{margin-top:10px;padding:10px 12px;border-radius:10px;font-weight:700;min-height:2.9em}
+.paystatus.ok{background:var(--bar);color:var(--bar-ink)}
+.paystatus.short{border:2px dashed var(--danger);color:var(--danger)}
+.paystatus.idle{color:var(--muted);font-weight:600;padding-left:0}
+.paystatus .big{font-family:var(--mono);font-size:1.3rem;font-weight:600}
+.paystatus small{display:block;font-weight:600;opacity:.85;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:0}
+.chip{border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;padding:4px 10px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:var(--mono)}
+.chip::after{content:" −";font-family:var(--sans)}
+.sheet h3{font-size:.95rem;font-weight:700;color:var(--muted);margin:16px 0 8px}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.coins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;justify-items:center}
+.money{position:relative;cursor:pointer;border:0;font-family:var(--sans);font-weight:800;user-select:none;-webkit-user-select:none;transition:transform .06s ease}
+.money:active{transform:scale(.94)}
+.note{height:56px;border-radius:8px;font-size:1.1rem;color:#fff;box-shadow:inset 0 0 0 3px rgba(255,255,255,.28)}
+.n500{background:#8e8f8a}.n1000{background:#c1504a}.n2000{background:#4a73b3}
+.n5000{background:#de8436;color:#2a1604}.n10000{background:#4b955a}.n20000{background:#cfa835;color:#2a2003}
+.coin{width:62px;height:62px;border-radius:999px;font-size:.88rem;white-space:nowrap;padding:0;letter-spacing:-.02em;color:#2a1d08;box-shadow:inset 0 0 0 3px rgba(0,0,0,.12)}
+.c1,.c2,.c5{background:#b86a3e;color:#fff4ea}
+.c10,.c20,.c50{background:#d8b24a}
+.c100{background:radial-gradient(circle,#c9ccd0 0 58%,#d8b24a 59%)}
+.c200{background:radial-gradient(circle,#d8b24a 0 58%,#c9ccd0 59%)}
+.c1{width:50px;height:50px}.c2{width:54px;height:54px}.c5{width:58px;height:58px}
+.c10{width:54px;height:54px}.c20{width:58px;height:58px}
+.mcount{position:absolute;top:-7px;right:-7px;min-width:26px;height:26px;padding:0 6px;display:grid;place-items:center;border-radius:999px;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:.8rem;font-weight:600;border:2px solid var(--bg)}
+.mfoot{
+  position:sticky;bottom:0;margin:18px -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
+  background:var(--bg);border-top:1.5px solid color-mix(in srgb, var(--muted) 40%, transparent);
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+}
+.mfoot .solid{flex:1 1 180px;padding:13px 16px;font-size:1.02rem}
+.mfoot .solid:disabled{opacity:.4;cursor:default}
+.hgiven{font-size:.8rem;color:var(--muted);margin-top:2px}
+@media (prefers-reduced-motion: reduce){.money{transition:none}}
+
 /* ---------- toast ---------- */
 .toast{
   position:fixed;left:50%;transform:translateX(-50%);z-index:6;
@@ -367,7 +420,7 @@ footer p{margin:0}
       <div class="itemsum" id="itemsum"></div>
       <div class="pay-row">
         <button class="reset" id="reset">Reset</button>
-        <button class="paid" id="paid" data-t="paid">Paid</button>
+        <button class="paid" id="paid" data-t="pay">Pay</button>
       </div>
     </div>
 
@@ -397,7 +450,31 @@ footer p{margin:0}
     <strong id="barTotal"></strong>
   </button>
   <button class="reset" id="reset2">Reset</button>
-  <button class="paid" id="paid2" data-t="paid">Paid</button>
+  <button class="paid" id="paid2" data-t="pay">Pay</button>
+</div>
+
+<div class="modal" id="payModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+    <div class="mhead">
+      <h2 id="payTitle" data-t="payTitle">Payment</h2>
+      <button class="mclose" id="payClose" data-t-aria="close" aria-label="Close">×</button>
+    </div>
+    <div class="paysum">
+      <div><span data-t="due">Due</span><strong id="payDue"></strong></div>
+      <div><span data-t="given">Given</span><strong id="payGiven"></strong></div>
+    </div>
+    <div class="paystatus" id="payStatus" aria-live="polite"></div>
+    <div class="chips" id="payChips"></div>
+    <h3 data-t="notes">Notes</h3>
+    <div class="notes" id="payNotes"></div>
+    <h3 data-t="coins">Coins</h3>
+    <div class="coins" id="payCoins"></div>
+    <div class="mfoot">
+      <button class="ghost" id="payExact" data-t="exact">Exact amount</button>
+      <button class="ghost" id="payClear" data-t="clearGiven">Clear</button>
+      <button class="solid" id="payConfirm" data-t="confirmPay">Complete payment</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="undo">Undo</button></div>
@@ -428,7 +505,14 @@ footer p{margin:0}
       order:"Order", total:"Total",
       nothing:"Nothing ordered yet.<br>Tap a button to add it.",
       each:p=>`${p} each`, items:n=>n===1?"1 item":`${n} items`,
-      reset:"Reset", sure:"Sure?", paid:"Paid",
+      reset:"Reset", sure:"Sure?", pay:"Pay",
+      payTitle:"Payment", due:"Due", given:"Given", notes:"Notes", coins:"Coins",
+      exact:"Exact amount", clearGiven:"Clear", confirmPay:"Complete payment", close:"Close",
+      tapMoney:"Tap the notes and coins you received.",
+      missing:t=>`${t} still missing`, change:"Change", noChange:"Exact, no change due.",
+      giveBack:"Give back:", removeOne:l=>`Remove one ${l}`,
+      toastPaidChange:(t,c)=>`Paid ${t}. Change ${c}.`, histGiven:(g,c)=>`Given ${g}, change ${c}`,
+      cents:v=>`${v}c`,
       history:"History", clearHistory:"Clear history",
       noHistory:"Orders you mark as paid appear here.",
       todaySum:(sum,n)=>`Today: ${sum} from ${n===1?"1 order":n+" orders"}`,
@@ -469,7 +553,14 @@ footer p{margin:0}
       order:"Bestellung", total:"Summe",
       nothing:"Noch nichts bestellt.<br>Tippe auf einen Button, um ihn hinzuzufügen.",
       each:p=>`je ${p}`, items:n=>n===1?"1 Artikel":`${n} Artikel`,
-      reset:"Leeren", sure:"Sicher?", paid:"Bezahlt",
+      reset:"Leeren", sure:"Sicher?", pay:"Bezahlen",
+      payTitle:"Bezahlung", due:"Zu zahlen", given:"Gegeben", notes:"Scheine", coins:"Münzen",
+      exact:"Passend", clearGiven:"Zurücksetzen", confirmPay:"Bezahlung abschließen", close:"Schließen",
+      tapMoney:"Tippe auf die erhaltenen Scheine und Münzen.",
+      missing:t=>`Es fehlen noch ${t}`, change:"Rückgeld", noChange:"Passend, kein Rückgeld.",
+      giveBack:"Herausgeben:", removeOne:l=>`${l} einmal entfernen`,
+      toastPaidChange:(t,c)=>`${t} bezahlt. Rückgeld ${c}.`, histGiven:(g,c)=>`Gegeben ${g}, Rückgeld ${c}`,
+      cents:v=>`${v} ct`,
       history:"Verlauf", clearHistory:"Verlauf löschen",
       noHistory:"Als bezahlt markierte Bestellungen erscheinen hier.",
       todaySum:(sum,n)=>`Heute: ${sum} aus ${n===1?"1 Bestellung":n+" Bestellungen"}`,
@@ -567,6 +658,7 @@ footer p{margin:0}
     disarm();
     refreshEditorText();
     render();
+    if(!$("payModal").hidden){ buildMoneyButtons(); renderPay(); }
   }
   document.querySelectorAll(".lang").forEach(b => b.addEventListener("click", () => {
     lang = b.dataset.lang;
@@ -660,6 +752,7 @@ footer p{margin:0}
               <button class="hdel" data-hdel="${h.t}" aria-label="${esc(T("ariaDelEntry"))}">×</button>
             </div>
             <div class="hitems">${esc(items)}</div>
+            ${h.change > 0 ? `<div class="hgiven">${esc(T("histGiven")(money(h.given), money(h.change)))}</div>` : ""}
           </li>`;
         }).join("");
     const more = $("hmore");
@@ -784,6 +877,8 @@ footer p{margin:0}
       orders: entries.map(h => ({
         paidAt: new Date(h.t).toISOString(),
         total: dec(h.total),
+        given: dec(h.given != null ? h.given : h.total),
+        change: dec(h.change || 0),
         lines: h.lines.map(l => ({id: l.id, name: lineName(l), type: lineType(l), quantity: l.qty, unitPrice: dec(l.price), subtotal: dec(l.qty * l.price)}))
       }))
     };
@@ -923,7 +1018,7 @@ footer p{margin:0}
   $("reset").addEventListener("click", handleReset);
   $("reset2").addEventListener("click", handleReset);
   let toastTimer = null, lastPaid = null;
-  function handlePaid(){
+  function finalizePayment(given){
     const ids = Object.keys(order).filter(id => order[id] > 0 && menu.some(m => m.id === id));
     if(!ids.length) return;
     const lines = ids.map(id => {
@@ -933,9 +1028,10 @@ footer p{margin:0}
       return l;
     });
     const total = lines.reduce((a,l) => a + l.qty*l.price, 0);
+    if(!(given >= total)) given = total;
     let t = Date.now();
     if(history.length && history[history.length-1].t >= t) t = history[history.length-1].t + 1;
-    const entry = {t, lines, total};
+    const entry = {t, lines, total, given, change: given - total};
     lastPaid = {entry, order:{...order}};
     history.push(entry);
     if(history.length > HIST_MAX) history = history.slice(-HIST_MAX);
@@ -943,14 +1039,120 @@ footer p{margin:0}
     save(KEY_HIST, history); save(KEY_ORDER, order);
     disarm();
     render();
-    $("toastMsg").textContent = T("toastPaid")(money(total));
+    $("toastMsg").textContent = entry.change > 0 ? T("toastPaidChange")(money(total), money(entry.change)) : T("toastPaid")(money(total));
     $("undo").textContent = T("undo");
     $("toast").hidden = false;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { $("toast").hidden = true; lastPaid = null; }, 6000);
   }
-  $("paid").addEventListener("click", handlePaid);
-  $("paid2").addEventListener("click", handlePaid);
+
+  /* ---------- payment sheet ---------- */
+  const NOTES = [500, 1000, 2000, 5000, 10000, 20000];
+  const COINS = [200, 100, 50, 20, 10, 5, 2, 1];
+  const DENOMS = [...NOTES].reverse().concat(COINS);
+  let given = {};      // cents value -> count
+  let exact = false;
+  let lastFocus = null;
+
+  const orderTotal = () => Object.keys(order)
+    .filter(id => order[id] > 0)
+    .reduce((a,id) => { const m = menu.find(x => x.id === id); return a + (m ? m.price*order[id] : 0); }, 0);
+  const givenSum = () => exact ? orderTotal() : Object.entries(given).reduce((a,[v,c]) => a + Number(v)*c, 0);
+  function denomLabel(v){
+    if(v < 100) return T("cents")(v);
+    const n = String(v/100);
+    return lang === "de" ? `${n}\u00a0${currency}`.trim() : currency + n;
+  }
+  function breakdown(c){
+    const parts = [];
+    for(const d of DENOMS){
+      const k = Math.floor(c / d);
+      if(k){ parts.push((k > 1 ? k + "× " : "") + denomLabel(d)); c -= k*d; }
+    }
+    return parts.join(" + ");
+  }
+  function buildMoneyButtons(){
+    $("payNotes").innerHTML = NOTES.map(v => `<button class="money note n${v}" data-money="${v}">${esc(denomLabel(v))}</button>`).join("");
+    $("payCoins").innerHTML = COINS.map(v => `<button class="money coin c${v}" data-money="${v}">${esc(denomLabel(v))}</button>`).join("");
+  }
+  function renderPay(){
+    const due = orderTotal();
+    const g = givenSum();
+    $("payDue").textContent = money(due);
+    $("payGiven").textContent = money(g);
+    document.querySelectorAll("[data-money]").forEach(b => {
+      const v = Number(b.dataset.money), c = given[v] || 0;
+      let badge = b.querySelector(".mcount");
+      if(c){
+        if(!badge){ badge = document.createElement("span"); badge.className = "mcount"; badge.setAttribute("aria-hidden","true"); b.appendChild(badge); }
+        badge.textContent = c;
+      }else if(badge) badge.remove();
+    });
+    $("payChips").innerHTML = exact ? "" : DENOMS.filter(v => given[v]).map(v =>
+      `<button class="chip" data-unmoney="${v}" aria-label="${esc(T("removeOne")(denomLabel(v)))}">${given[v]}× ${esc(denomLabel(v))}</button>`).join("");
+    const st = $("payStatus");
+    if(!exact && g === 0){
+      st.className = "paystatus idle"; st.textContent = T("tapMoney");
+    }else if(g < due){
+      st.className = "paystatus short"; st.innerHTML = `<span class="big">${esc(T("missing")(money(due - g)))}</span>`;
+    }else if(g === due){
+      st.className = "paystatus ok"; st.textContent = T("noChange");
+    }else{
+      st.className = "paystatus ok";
+      st.innerHTML = `<span>${esc(T("change"))}</span> <span class="big">${money(g - due)}</span><small>${esc(T("giveBack"))} ${esc(breakdown(g - due))}</small>`;
+    }
+    $("payConfirm").disabled = g < due || due === 0;
+    $("payClear").disabled = !exact && g === 0;
+  }
+  function openPay(){
+    if(!orderTotal()) return;
+    given = {}; exact = false;
+    disarm();
+    buildMoneyButtons();
+    renderPay();
+    lastFocus = document.activeElement;
+    $("payModal").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("payModal").querySelector(".sheet").scrollTop = 0;
+    $("payClose").focus({preventScroll:true});
+  }
+  function closePay(){
+    $("payModal").hidden = true;
+    document.body.style.overflow = "";
+    if(lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true});
+  }
+  $("paid").addEventListener("click", openPay);
+  $("paid2").addEventListener("click", openPay);
+  $("payClose").addEventListener("click", closePay);
+  $("payModal").addEventListener("click", e => {
+    if(e.target === $("payModal")) { closePay(); return; }
+    const m = e.target.closest("[data-money]");
+    if(m){
+      if(exact){ exact = false; given = {}; }
+      const v = Number(m.dataset.money);
+      given[v] = (given[v] || 0) + 1;
+      renderPay();
+      if(navigator.vibrate) navigator.vibrate(10);
+      return;
+    }
+    const u = e.target.closest("[data-unmoney]");
+    if(u){
+      const v = Number(u.dataset.unmoney);
+      if(given[v] > 1) given[v]--; else delete given[v];
+      renderPay();
+    }
+  });
+  $("payExact").addEventListener("click", () => { exact = true; given = {}; renderPay(); });
+  $("payClear").addEventListener("click", () => { exact = false; given = {}; renderPay(); });
+  $("payConfirm").addEventListener("click", () => {
+    const g = givenSum();
+    if(g < orderTotal()) return;
+    closePay();
+    finalizePayment(g);
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape" && !$("payModal").hidden) closePay();
+  });
   $("undo").addEventListener("click", () => {
     if(!lastPaid) return;
     history = history.filter(h => h.t !== lastPaid.entry.t);
