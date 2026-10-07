@@ -1491,7 +1491,10 @@ input[type=text],input[type=number],select{
 
   // Swipe: only clearly horizontal drags count, and never from the screen edges
   // (those belong to the browser's back/forward gestures). Taps are untouched.
-  const EDGE = 28, LOCK = 14;
+  // Tuning: how far the finger must travel before a swipe is recognised (LOCK),
+  // how much more sideways than vertical it must be (RATIO), and how far / how fast
+  // it must go before the tab actually changes (COMMIT, FLICK_V, FLICK_MIN).
+  const EDGE = 28, LOCK = 30, RATIO = 2.2, COMMIT = 0.38, FLICK_V = 0.9, FLICK_MIN = 90;
   let sw = null, suppressClick = false;
   track.addEventListener("touchstart", e => {
     if(!mqPhone.matches || e.touches.length !== 1 || editing) { sw = null; return; }
@@ -1505,14 +1508,15 @@ input[type=text],input[type=number],select{
     const dx = t.clientX - sw.x, dy = t.clientY - sw.y;
     if(!sw.mode){
       if(Math.abs(dx) < LOCK && Math.abs(dy) < LOCK) return;
-      sw.mode = Math.abs(dx) > Math.abs(dy) * 1.5 ? "h" : "v";
-      if(sw.mode === "h") track.classList.add("dragging");
+      sw.mode = Math.abs(dx) > Math.abs(dy) * RATIO ? "h" : "v";
+      if(sw.mode === "h"){ track.classList.add("dragging"); sw.x0 = t.clientX; }
     }
     if(sw.mode !== "h") return;
     e.preventDefault();
-    let d = dx;
-    if((tab === 0 && dx > 0) || (tab === 2 && dx < 0)) d = dx / 3; // resist past the ends
-    sw.dx = dx;
+    // the panel only starts following from the point the swipe was recognised, so it doesn't jump
+    let d = t.clientX - sw.x0;
+    if((tab === 0 && d > 0) || (tab === 2 && d < 0)) d = d / 3; // resist past the ends
+    sw.dx = dx; // whole finger travel decides whether the tab changes
     track.style.transform = `translateX(calc(${-tab*100}% + ${d}px))`;
   }, {passive:false});
   function endSwipe(){
@@ -1522,10 +1526,10 @@ input[type=text],input[type=number],select{
       setTimeout(() => { suppressClick = false; }, 350);
       track.classList.remove("dragging");
       const w = track.clientWidth || window.innerWidth;
-      const fast = Math.abs(sw.dx) / Math.max(1, Date.now() - sw.t) > 0.45;
+      const fast = Math.abs(sw.dx) >= FLICK_MIN && Math.abs(sw.dx) / Math.max(1, Date.now() - sw.t) > FLICK_V;
       let next = tab;
-      if(sw.dx < 0 && (sw.dx < -w*0.22 || fast)) next = tab + 1;
-      if(sw.dx > 0 && (sw.dx >  w*0.22 || fast)) next = tab - 1;
+      if(sw.dx < 0 && (sw.dx < -w*COMMIT || fast)) next = tab + 1;
+      if(sw.dx > 0 && (sw.dx >  w*COMMIT || fast)) next = tab - 1;
       goTab(next);
     }
     sw = null;
