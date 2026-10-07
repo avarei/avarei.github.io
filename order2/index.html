@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Order Tally</title>
+<meta name="theme-color" content="#21412f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Order Tally">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e4e9e1;
+  --ink:#16261c;
+  --muted:#5d6c62;
+  --bar:#21412f;
+  --bar-ink:#f1f5ee;
+  --food:#f0c04a;
+  --food-ink:#2b2205;
+  --food-edge:#c79a2a;
+  --drink:#7fb3d8;
+  --drink-ink:#0d2233;
+  --drink-edge:#5687ab;
+  --paper:#fffdf6;
+  --paper-ink:#1d1d1a;
+  --paper-rule:#c9c4b4;
+  --field:#ffffff;
+  --danger:#b3261e;
+  --focus:#1c6dd0;
+  --sans:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121a15; --ink:#e4ebe5; --muted:#93a398; --bar:#1b3325; --bar-ink:#e4ebe5;
+    --food:#d9a933; --food-ink:#221a03; --food-edge:#9c7a1d;
+    --drink:#5f97bf; --drink-ink:#061522; --drink-edge:#3d6a8b;
+    --paper:#efeadb; --paper-ink:#1d1d1a; --paper-rule:#b2ac99;
+    --field:#1b241e; --danger:#f2766b; --focus:#7db4ff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121a15; --ink:#e4ebe5; --muted:#93a398; --bar:#1b3325; --bar-ink:#e4ebe5;
+  --food:#d9a933; --food-ink:#221a03; --food-edge:#9c7a1d;
+  --drink:#5f97bf; --drink-ink:#061522; --drink-edge:#3d6a8b;
+  --paper:#efeadb; --paper-ink:#1d1d1a; --paper-rule:#b2ac99;
+  --field:#1b241e; --danger:#f2766b; --focus:#7db4ff;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,input,select,label{touch-action:manipulation}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;
+  min-height:100vh;
+}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:18px clamp(16px,4vw,32px) 10px;max-width:1120px;margin:0 auto;
+}
+h1{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:0;line-height:1}
+.ghost{
+  background:transparent;border:2px solid currentColor;border-radius:999px;
+  padding:7px 16px;font-weight:700;cursor:pointer;color:var(--ink);white-space:nowrap;
+}
+.ghost[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* ===== layout: phones = three swipeable panels, computers = two columns ===== */
+.tabs{display:none}
+.more-toggle{
+  width:100%;cursor:pointer;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;text-align:left;
+  padding:14px 48px 14px 16px;border:2px solid var(--ink);border-radius:14px;position:relative;
+  background:transparent;color:var(--ink);
+}
+.more-toggle::after{
+  content:"";position:absolute;right:20px;top:50%;width:10px;height:10px;
+  border-right:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);
+  transform:translateY(-70%) rotate(45deg);transition:transform .15s ease;
+}
+.p-more.open .more-toggle::after{transform:translateY(-30%) rotate(-135deg)}
+.more-title{font-size:1.2rem;font-weight:800}
+.more-sub{color:var(--muted);font-size:.92rem}
+.more-body{display:flex;flex-direction:column;gap:36px}
+.saved-note{color:var(--muted);font-size:.85rem;margin:0}
+.stats{min-width:0}
+.panel{min-width:0}
+
+@media (min-width:860px){
+  main{max-width:1120px;margin:0 auto;padding:6px clamp(16px,4vw,32px) 40px}
+  .track{
+    display:grid;grid-template-columns:minmax(0,1fr) 340px;column-gap:28px;row-gap:40px;
+    grid-template-areas:"menu order" "more order";grid-template-rows:auto 1fr;align-items:start;
+  }
+  .p-menu{grid-area:menu}
+  .p-order{grid-area:order}
+  .p-more{grid-area:more}
+  .p-more .more-body{display:none;padding-top:24px}
+  .p-more.open .more-body{display:flex}
+}
+
+@media (max-width:859px){
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  .shell{
+    position:fixed;inset:0;display:flex;flex-direction:column;
+    padding-top:env(safe-area-inset-top,0px);
+  }
+  header{padding:12px 16px 8px;width:100%}
+  .tabs{
+    display:flex;margin:0 16px 4px;border:2px solid var(--ink);border-radius:999px;overflow:hidden;flex:none;
+  }
+  .tab{
+    flex:1;border:0;background:transparent;color:var(--ink);padding:8px 6px;cursor:pointer;
+    font-weight:700;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .tab + .tab{border-left:2px solid var(--ink)}
+  .tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+  .tbadge{
+    min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:inline-grid;place-items:center;
+    background:var(--food);color:var(--food-ink);font-family:var(--mono);font-size:.78rem;font-weight:600;
+  }
+  .tbadge[hidden]{display:none}
+  main{flex:1;min-height:0;overflow:hidden;position:relative}
+  .track{display:flex;height:100%;will-change:transform;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .track.dragging{transition:none}
+  .panel{
+    flex:0 0 100%;width:100%;height:100%;overflow-y:auto;overscroll-behavior:contain;
+    padding:10px 16px 20px;touch-action:pan-y;-webkit-overflow-scrolling:touch;
+  }
+  /* the menu never scrolls, except while editing it */
+  .p-menu{overflow:hidden;display:flex;flex-direction:column}
+  #app.editing .p-menu{overflow-y:auto;display:block}
+  .p-menu .group{display:flex;flex-direction:column;min-height:0}
+  .p-menu .group + .group{margin-top:14px}
+  .p-menu .group h2{margin-bottom:8px}
+  .p-menu .keys{grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));grid-auto-rows:var(--keyH,112px);gap:10px}
+  .p-menu .key{min-height:0;height:100%}
+  .p-order .pay-row{display:none}
+  .more-toggle{display:none}
+  .shell > .bar{position:relative;left:auto;right:auto;bottom:auto;flex:none}
+}
+@media (max-width:859px) and (prefers-reduced-motion: reduce){.track{transition:none}}
+
+/* ---------- keys ---------- *//* ---------- keys ---------- */
+.group h2{font-size:1.05rem;font-weight:700;margin:0 0 10px;color:var(--muted)}
+.group + .group{margin-top:22px}
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr));gap:12px}
+.slot{position:relative;min-width:0;display:flex}
+.key{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;
+  width:100%;min-width:0;min-height:112px;padding:14px 14px 12px;text-align:left;cursor:pointer;
+  border:0;border-radius:14px;
+  background:var(--food);color:var(--food-ink);
+  box-shadow:0 5px 0 var(--food-edge);
+  transition:transform .06s ease, box-shadow .06s ease;
+  user-select:none;-webkit-user-select:none;
+}
+.key.drink{background:var(--drink);color:var(--drink-ink);box-shadow:0 5px 0 var(--drink-edge)}
+.key:active{transform:translateY(4px);box-shadow:0 1px 0 var(--food-edge)}
+.key.drink:active{box-shadow:0 1px 0 var(--drink-edge)}
+.key .emoji{font-size:1.7rem;line-height:1}
+.key .name{font-size:1.15rem;font-weight:800;line-height:1.15;margin-top:8px;overflow-wrap:break-word;hyphens:manual}
+@media (max-width:520px){
+  .key{min-height:104px;padding:12px 9px 10px;border-radius:12px}
+  .key .emoji{font-size:1.45rem}
+  .key .name{font-size:.92rem;margin-top:6px;letter-spacing:-.01em}
+  .key .price{font-size:.85rem}
+  .count{min-width:28px;height:28px;font-size:.85rem;top:-7px;right:-6px}
+}
+.key .price{font-family:var(--mono);font-size:.95rem;font-weight:600;opacity:.85}
+.count{
+  position:absolute;top:-8px;right:-8px;min-width:32px;height:32px;padding:0 8px;
+  display:grid;place-items:center;border-radius:999px;
+  background:var(--bar);color:var(--bar-ink);font-family:var(--mono);font-weight:600;font-size:.95rem;
+  border:3px solid var(--bg);
+}
+.count.bump{animation:bump .22s ease}
+@keyframes bump{50%{transform:scale(1.25)}}
+.editing .key{outline:2px dashed currentColor;outline-offset:-6px}
+.editing .key .count{display:none}
+.del{
+  position:absolute;top:-8px;right:-8px;z-index:1;width:30px;height:30px;border:3px solid var(--bg);border-radius:999px;
+  background:var(--danger);color:#fff;font-size:1.1rem;line-height:1;cursor:pointer;display:none;
+}
+.editing .del{display:block}
+.empty-group{color:var(--muted);font-size:.95rem;margin:0}
+
+.p-menu.tight .key{padding:7px 8px 8px}
+.p-menu.tight .key .emoji{position:absolute;top:6px;right:7px;font-size:1rem}
+.p-menu.tight .key .name{
+  margin-top:0;padding-right:20px;font-size:.84rem;line-height:1.12;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.p-menu.tight .key .price{font-size:.8rem}
+
+/* ---------- editor ---------- */
+.editor{
+  margin-top:26px;padding:18px;border-radius:16px;border:2px solid var(--ink);display:none;
+}
+.editing .editor{display:block}
+.editor h2{margin:0 0 12px;font-size:1.15rem}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:700}
+input[type=text],input[type=number],select{
+  padding:10px 12px;border-radius:10px;border:2px solid var(--muted);background:var(--field);font-weight:500;
+  min-width:0;
+}
+.check{flex-direction:row;align-items:center;gap:8px;font-weight:600;margin-top:12px}
+.check input{width:20px;height:20px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.solid{
+  border:0;border-radius:999px;padding:10px 18px;font-weight:700;cursor:pointer;
+  background:var(--bar);color:var(--bar-ink);
+}
+.solid:disabled,.ghost:disabled{opacity:.4;cursor:default}
+.err{color:var(--danger);font-weight:600;margin:10px 0 0;min-height:1.2em;font-size:.92rem}
+.hint{color:var(--muted);font-size:.9rem;margin:8px 0 0}
+
+/* ---------- receipt ---------- */
+.receipt-wrap{position:relative}
+.receipt-wrap{display:flex;flex-direction:column;gap:28px;min-width:0}
+.receipt{
+  background:var(--paper);color:var(--paper-ink);font-family:var(--mono);
+  padding:22px 20px 26px;position:relative;
+  filter:drop-shadow(0 6px 10px rgba(20,40,25,.18));
+  --zig:10px;
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/var(--zig) 51% repeat-x,
+    conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) top/var(--zig) 51% repeat-x;
+  mask:
+    conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/var(--zig) 51% repeat-x,
+    conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) top/var(--zig) 51% repeat-x;
+}
+.receipt h2{font-family:var(--sans);font-size:1.4rem;font-weight:800;margin:0 0 2px;letter-spacing:-.01em}
+.receipt .sub{font-size:.8rem;color:#6d6857;margin:0 0 14px}
+.lines{list-style:none;margin:0;padding:0;border-top:2px dashed var(--paper-rule)}
+.line{
+  display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;
+  padding:10px 0;border-bottom:1px dashed var(--paper-rule);font-size:.95rem;
+}
+.line .qty{font-weight:600;min-width:2.6ch}
+.line .lname{font-weight:600;overflow-wrap:anywhere}
+.line .lsum{text-align:right;font-weight:600}
+.line .each{grid-column:2;font-size:.78rem;color:#6d6857}
+.line .steppers{grid-column:3;display:flex;gap:6px;justify-content:flex-end}
+.step{
+  width:30px;height:30px;border-radius:8px;border:1.5px solid var(--paper-ink);background:transparent;
+  color:var(--paper-ink);font-family:var(--mono);font-weight:600;cursor:pointer;line-height:1;
+}
+.nothing{padding:22px 0;text-align:center;color:#6d6857;font-size:.92rem;border-bottom:1px dashed var(--paper-rule)}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;gap:10px}
+.total span:first-child{font-family:var(--sans);font-weight:700;font-size:1.05rem}
+.total strong{font-size:1.8rem;font-weight:600;letter-spacing:-.02em}
+.itemsum{font-size:.82rem;color:#6d6857;text-align:right;margin-top:2px}
+.pay-row{display:flex;align-items:center;gap:12px;margin-top:16px}
+.paid{
+  flex:1;padding:13px 16px;border-radius:10px;border:0;cursor:pointer;
+  background:var(--bar);color:var(--bar-ink);font-family:var(--sans);font-weight:800;font-size:1.05rem;
+}
+.paid:disabled{opacity:.4;cursor:default}
+.reset{
+  padding:6px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;
+  border:1.5px solid var(--danger);background:transparent;color:var(--danger);
+  font-family:var(--sans);font-weight:700;font-size:.82rem;
+}
+.reset.armed{background:var(--danger);color:#fff}
+.reset:disabled{opacity:.4;cursor:default}
+
+/* ---------- history ---------- */
+.history h2{font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-.01em}
+.hhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hsum{margin:4px 0 12px;color:var(--muted);font-size:.92rem}
+.hlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.hentry{border:1.5px solid var(--muted);border-radius:10px;padding:10px 12px}
+.htop{display:flex;align-items:center;gap:10px}
+.htime{flex:1;font-weight:700;font-size:.92rem}
+.htotal{font-family:var(--mono);font-weight:600}
+.hitems{margin-top:3px;font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+.hdel{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--muted);background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;flex:none}
+.hempty{color:var(--muted);font-size:.92rem;margin:4px 0 0}
+.small-ghost{background:transparent;border:1.5px solid var(--muted);color:var(--muted);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.82rem;cursor:pointer}
+.hmore{margin-top:10px}
+
+/* ---------- evaluation ---------- */
+.stats h2{font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-.01em}
+.stats h3{font-size:1rem;font-weight:700;margin:22px 0 8px;color:var(--muted)}
+.seg{display:inline-flex;margin:10px 0 16px;border:2px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink);padding:6px 14px;font-weight:700;font-size:.9rem;cursor:pointer}
+.seg button + button{border-left:2px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:12px 14px}
+.kpi b{display:block;font-family:var(--mono);font-size:1.35rem;font-weight:600;letter-spacing:-.02em;line-height:1.2;overflow-wrap:anywhere}
+.kpi span{font-size:.85rem;color:#6d6857}
+.splitbar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--paper)}
+.splitbar i{display:block;height:100%}
+.splitbar .f{background:var(--food)} .splitbar .d{background:var(--drink)}
+.splitlegend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:.9rem}
+.splitlegend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:0}
+.splitlegend .f::before{background:var(--food)} .splitlegend .d::before{background:var(--drink)}
+.tablewrap{overflow-x:auto}
+.itable{width:100%;border-collapse:collapse;font-size:.92rem}
+.itable th{text-align:left;font-weight:700;color:var(--muted);font-size:.82rem;padding:0 8px 6px 0}
+.itable th.num,.itable td.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.itable td{padding:8px 8px 8px 0;border-top:1px solid color-mix(in srgb, var(--muted) 35%, transparent);vertical-align:middle}
+.itable td.iname{font-weight:600;min-width:7em}
+.ibar{height:8px;border-radius:999px;background:var(--food);margin-top:5px}
+.ibar.d{background:var(--drink)}
+.hours{display:flex;align-items:flex-end;gap:4px;height:110px;padding-top:4px}
+.hcol{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.hcol i{display:block;width:100%;max-width:28px;border-radius:5px 5px 2px 2px;background:var(--bar);min-height:2px}
+.hcol small{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.sempty{color:var(--muted);font-size:.95rem;margin:4px 0}
+.xmsg{min-height:1.3em;margin:8px 0 0;font-size:.9rem;color:var(--muted)}
+
+/* ---------- payment sheet ---------- */
+/* Phones and tablets: the sheet fills the whole visible screen, top to bottom. */
+.modal{
+  position:fixed;inset:0;z-index:10;background:rgba(10,20,14,.55);
+  display:flex;align-items:stretch;justify-content:center;
+}
+.modal[hidden]{display:none}
+.sheet{
+  width:100%;max-width:560px;height:100%;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  background:var(--bg);color:var(--ink);border-radius:0;
+  padding:18px 18px 0;padding-top:calc(18px + env(safe-area-inset-top,0px));
+  display:flex;flex-direction:column;
+}
+/* never let the content blocks get squeezed; the sheet scrolls instead */
+.sheet > *{flex-shrink:0}
+/* Computers with a mouse: a centered window that fits inside the visible screen. */
+@media (min-width:900px) and (pointer:fine){
+  .modal{align-items:center;padding:24px}
+  .sheet{height:auto;max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);border-radius:18px;padding-top:18px}
+}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mhead h2{margin:0;font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
+.mclose{width:36px;height:36px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:1.2rem;line-height:1;cursor:pointer}
+.paysum{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.paysum div{background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:10px 12px}
+.paysum span{display:block;font-size:.85rem;color:#6d6857}
+.paysum strong{font-family:var(--mono);font-size:1.45rem;font-weight:600;letter-spacing:-.02em}
+.paystatus{margin-top:10px;padding:10px 12px;border-radius:10px;font-weight:700;min-height:2.9em}
+.paystatus.ok{background:var(--bar);color:var(--bar-ink)}
+.paystatus.short{border:2px dashed var(--danger);color:var(--danger)}
+.paystatus.idle{color:var(--muted);font-weight:600;padding-left:0}
+.paystatus .big{font-family:var(--mono);font-size:1.3rem;font-weight:600}
+.paystatus small{display:block;font-weight:600;opacity:.85;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:0}
+.chips:empty{display:none}
+#payConfirm .ls,#payClear .ls{display:none}
+.chip{border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;padding:4px 10px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:var(--mono)}
+.chip::after{content:" −";font-family:var(--sans)}
+.sheet h3{font-size:.95rem;font-weight:700;color:var(--muted);margin:16px 0 8px}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.coins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;justify-items:center;margin-bottom:18px}
+.money{position:relative;cursor:pointer;border:0;font-family:var(--sans);font-weight:800;user-select:none;-webkit-user-select:none;transition:transform .06s ease}
+.money:active{transform:scale(.94)}
+.note{height:56px;border-radius:8px;font-size:1.1rem;color:#fff;box-shadow:inset 0 0 0 3px rgba(255,255,255,.28)}
+.n500{background:#8e8f8a}.n1000{background:#c1504a}.n2000{background:#4a73b3}
+.n5000{background:#de8436;color:#2a1604}.n10000{background:#4b955a}.n20000{background:#cfa835;color:#2a2003}
+.coin{--d:62px;width:calc(var(--d) * var(--cs,1));height:calc(var(--d) * var(--cs,1));border-radius:999px;font-size:calc(.88rem * max(var(--cs,1), .85));white-space:nowrap;padding:0;letter-spacing:-.02em;color:#2a1d08;box-shadow:inset 0 0 0 3px rgba(0,0,0,.12)}
+.c1,.c2,.c5{background:#b86a3e;color:#fff4ea}
+.c10,.c20,.c50{background:#d8b24a}
+.c100{background:radial-gradient(circle,#c9ccd0 0 58%,#d8b24a 59%)}
+.c200{background:radial-gradient(circle,#d8b24a 0 58%,#c9ccd0 59%)}
+.c1{--d:50px}.c2{--d:54px}.c5{--d:58px}
+.c10{--d:54px}.c20{--d:58px}
+.mcount{position:absolute;top:-7px;right:-7px;min-width:26px;height:26px;padding:0 6px;display:grid;place-items:center;border-radius:999px;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:.8rem;font-weight:600;border:2px solid var(--bg)}
+.mfoot{
+  position:sticky;bottom:0;margin:auto -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
+  background:var(--bg);border-top:1.5px solid color-mix(in srgb, var(--muted) 40%, transparent);
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+}
+.mfoot .solid{flex:1 1 180px;padding:13px 16px;font-size:1.02rem}
+.mfoot .solid:disabled{opacity:.4;cursor:default}
+.hgiven{font-size:.8rem;color:var(--muted);margin-top:2px}
+/* ===== payment sheet: shrink step by step as screen height runs out ===== */
+@media (max-height:760px){
+  .sheet{padding-top:calc(12px + env(safe-area-inset-top,0px))}
+  .mclose{width:32px;height:32px}
+  .paysum{margin-top:10px}
+  .paysum div{padding:8px 12px}
+  .paysum strong{font-size:1.25rem}
+  .paystatus{margin-top:8px;padding:8px 12px}
+  .sheet h3{margin:10px 0 6px}
+  .note{height:46px}
+  .coins{--cs:.88;gap:8px;row-gap:6px;margin-bottom:12px}
+  .mfoot{padding-top:10px}
+  .mfoot .ghost{padding:6px 14px}
+  .mfoot .solid{padding:11px 16px}
+}
+@media (max-height:680px){
+  .sheet{padding:10px 14px 0;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+  .mhead h2{font-size:1.15rem}
+  .mclose{width:30px;height:30px;font-size:1rem;border-width:1.5px}
+  /* label and amount on one line */
+  .paysum{margin-top:8px;gap:8px}
+  .paysum div{padding:6px 10px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0 6px}
+  .paysum span{font-size:.78rem}
+  .paysum strong{font-size:1.12rem}
+  .paystatus{margin-top:6px;padding:6px 10px;min-height:0;font-size:.9rem}
+  .paystatus.idle{padding-left:0}
+  .paystatus .big{font-size:1.1rem}
+  .paystatus small{font-size:.78rem}
+  .chips{margin-top:6px;gap:4px}
+  .chip{padding:2px 8px;font-size:.78rem}
+  .sheet h3{margin:8px 0 4px;font-size:.8rem}
+  .notes{gap:8px}
+  .note{height:40px;font-size:1rem}
+  .coins{--cs:.78;column-gap:6px;row-gap:4px;margin-bottom:8px}
+  .mcount{min-width:22px;height:22px;font-size:.72rem;top:-6px;right:-6px}
+  /* footer buttons in a single row with a shorter confirm label */
+  .mfoot{margin:auto -14px 0;padding:8px 14px calc(8px + env(safe-area-inset-bottom,0px));flex-wrap:nowrap;gap:6px}
+  .mfoot .ghost{padding:6px 10px;font-size:.85rem;border-width:1.5px}
+  .mfoot .solid{flex:1 1 auto;padding:10px 12px;font-size:.95rem;white-space:nowrap}
+  #payConfirm .lf{display:none}
+  #payConfirm .ls{display:inline}
+}
+@media (max-height:580px){
+  .note{height:36px}
+  .coins{--cs:.7}
+  .sheet h3{margin:6px 0 3px}
+}
+/* landscape phones: amounts on the left, money on the right */
+@media (max-height:500px) and (min-width:560px){
+  .sheet{max-width:none}
+  .pay-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);column-gap:18px;align-items:start}
+  .pay-right h3:first-child{margin-top:0}
+  .note{height:38px}
+  .coins{--cs:.74}
+  #payConfirm .lf{display:inline}
+  #payConfirm .ls{display:none}
+}
+/* narrow + short phones: the reset button becomes an icon so all three fit in one row */
+@media (max-height:680px) and (max-width:400px){
+  #payClear{padding:4px 12px;font-size:1.15rem;line-height:1}
+  #payClear .lf{display:none}
+  #payClear .ls{display:inline}
+  .mfoot .solid{min-width:0}
+}
+@media (prefers-reduced-motion: reduce){.money{transition:none}}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);z-index:6;
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  width:min(92vw,420px);display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:12px;background:var(--ink);color:var(--bg);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);font-weight:600;font-size:.95rem;
+}
+.toast[hidden]{display:none}
+.toast span{flex:1}
+.toast button{background:transparent;border:1.5px solid currentColor;color:inherit;border-radius:8px;padding:6px 12px;font-weight:800;cursor:pointer}
+@media (min-width:860px){.toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}}
+/* on phones the toast sits over the header so it never covers menu buttons */
+@media (max-width:859px){.toast{bottom:auto;top:calc(8px + env(safe-area-inset-top,0px))}}
+
+/* ---------- mobile bottom bar ---------- */
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:5;
+  padding:12px clamp(16px,4vw,32px) calc(12px + env(safe-area-inset-bottom,0px));
+  background:var(--bar);color:var(--bar-ink);
+  display:flex;align-items:center;gap:12px;
+}
+.bar .btotal{flex:1;display:flex;flex-direction:column;line-height:1.15;background:none;border:0;text-align:left;cursor:pointer;padding:0;color:inherit}
+.bar .btotal small{opacity:.75;font-size:.82rem}
+.bar .btotal strong{font-family:var(--mono);font-size:1.45rem;font-weight:600}
+.bar .reset{padding:6px 10px;border-color:#f3a59e;color:#f3a59e}
+.bar .paid{flex:none;padding:12px 18px;background:var(--food);color:var(--food-ink)}
+.bar .reset.armed{background:#f3a59e;color:var(--bar)}
+@media (min-width:860px){.bar{display:none}}
+
+.langs{display:flex;gap:6px}
+.langs{gap:8px}
+.langrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.langrow h2{font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-.01em}
+.lang{
+  width:46px;height:46px;display:grid;place-items:center;padding:0;cursor:pointer;
+  background:transparent;border:2px solid transparent;border-radius:999px;
+  font-size:1.7rem;line-height:1;opacity:.45;filter:grayscale(.6);
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
+.lang[aria-pressed="true"]{opacity:1;filter:none;border-color:var(--ink)}
+@media (prefers-reduced-motion: reduce){
+  .key,.count.bump{transition:none;animation:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <h1 data-t="appName">Order Tally</h1>
+  <button class="ghost" id="editToggle" aria-pressed="false">Edit menu</button>
+</header>
+
+<nav class="tabs" role="tablist" id="tabs">
+  <button class="tab" role="tab" id="tab0" data-tab="0" aria-controls="pMenu" aria-selected="true"><span data-t="menu">Menu</span></button>
+  <button class="tab" role="tab" id="tab1" data-tab="1" aria-controls="pOrder" aria-selected="false"><span data-t="order">Order</span><span class="tbadge" id="tabBadge" hidden></span></button>
+  <button class="tab" role="tab" id="tab2" data-tab="2" aria-controls="pMore" aria-selected="false"><span data-t="more">More</span></button>
+</nav>
+
+<main id="app">
+<div class="track" id="track">
+  <section class="panel p-menu" id="pMenu" role="tabpanel" aria-labelledby="tab0">
+    <div class="group">
+      <h2 data-t="food">Food</h2>
+      <div class="keys" id="foodKeys"></div>
+    </div>
+    <div class="group">
+      <h2 data-t="drinks">Drinks</h2>
+      <div class="keys" id="drinkKeys"></div>
+    </div>
+
+    <form class="editor" id="editor" autocomplete="off">
+      <h2 id="editorTitle">Add a button</h2>
+      <div class="row">
+        <label><span data-t="name">Name</span><input type="text" id="fName" maxlength="40" data-t-ph="namePh"></label>
+        <label><span data-t="price">Price</span><input type="text" id="fPrice" inputmode="decimal" data-t-ph="pricePh"></label>
+        <label><span data-t="icon">Icon</span><input type="text" id="fEmoji" maxlength="4" placeholder="🌭"></label>
+        <label><span data-t="type">Type</span>
+          <select id="fType">
+            <option value="food" data-t="optFood">Food</option>
+            <option value="drink" data-t="optDrink">Drink</option>
+          </select>
+        </label>
+      </div>
+      <p class="err" id="fErr" role="alert"></p>
+      <div class="actions">
+        <button type="submit" class="solid" id="fSave">Add button</button>
+        <button type="button" class="ghost" id="fCancel" data-t="cancelEdit" hidden>Cancel edit</button>
+      </div>
+      <p class="hint" data-t="hint">Tap a button above to edit it, or × to remove it.</p>
+      <div class="actions">
+        <button type="button" class="ghost" id="restore" data-t="restore">Restore default menu</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel p-order receipt-wrap" id="pOrder" role="tabpanel" aria-labelledby="tab1">
+    <div class="receipt">
+      <h2 data-t="order">Order</h2>
+      <p class="sub" id="stamp"></p>
+      <ul class="lines" id="lines"></ul>
+      <div class="total"><span data-t="total">Total</span><strong id="total"></strong></div>
+      <div class="itemsum" id="itemsum"></div>
+      <div class="pay-row">
+        <button class="reset" id="reset">Reset</button>
+        <button class="paid" id="paid" data-t="pay">Pay</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel p-more" id="pMore" role="tabpanel" aria-labelledby="tab2">
+    <button class="more-toggle" id="moreToggle" aria-expanded="false" aria-controls="moreBody">
+      <span class="more-title" data-t="more">More</span>
+      <span class="more-sub" data-t="moreSub">History, evaluation and language</span>
+    </button>
+    <div class="more-body" id="moreBody">
+      <section class="history" data-t-aria="history" aria-label="History">
+        <div class="hhead">
+          <h2 data-t="history">History</h2>
+          <button class="small-ghost" id="clearHistory" data-t="clearHistory">Clear history</button>
+        </div>
+        <p class="hsum" id="hsum"></p>
+        <ol class="hlist" id="hlist"></ol>
+        <button class="small-ghost hmore" id="hmore" hidden></button>
+      </section>
+
+      <section class="stats" id="stats" data-t-aria="stats" aria-label="Evaluation">
+      <div class="hhead">
+        <h2 data-t="stats">Evaluation</h2>
+      </div>
+      <div class="seg" role="group" id="periods">
+        <button data-period="today" data-t="pToday">Today</button>
+        <button data-period="week" data-t="pWeek">7 days</button>
+        <button data-period="all" data-t="pAll">All time</button>
+      </div>
+      <div id="statsBody"></div>
+      <div class="actions">
+        <button class="solid" id="exportJson" data-t="exportJson">Export as JSON</button>
+        <button class="ghost" id="copyJson" data-t="copyJson">Copy JSON</button>
+      </div>
+      <p class="xmsg" id="xmsg" role="status"></p>
+    </section>
+      <div class="langrow">
+        <h2 id="langLbl" data-t="language">Language</h2>
+        <div class="langs" role="group" aria-labelledby="langLbl">
+          <button class="lang" data-lang="en" lang="en" aria-label="English" title="English">🇬🇧</button>
+          <button class="lang" data-lang="de" lang="de" aria-label="Deutsch" title="Deutsch">🇩🇪</button>
+        </div>
+      </div>
+      <p class="saved-note" data-t="saved">Menu, order and history are saved on this device.</p>
+    </div>
+  </section>
+</div>
+</main>
+
+<div class="bar">
+  <button class="btotal" id="jump" data-t-aria="showOrder" aria-label="Show order">
+    <small id="barCount"></small>
+    <strong id="barTotal"></strong>
+  </button>
+  <button class="reset" id="reset2">Reset</button>
+  <button class="paid" id="paid2" data-t="pay">Pay</button>
+</div>
+</div>
+
+<div class="modal" id="payModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+    <div class="mhead">
+      <h2 id="payTitle" data-t="payTitle">Payment</h2>
+      <button class="mclose" id="payClose" data-t-aria="close" aria-label="Close">×</button>
+    </div>
+    <div class="pay-body">
+    <div class="pay-left">
+    <div class="paysum">
+      <div><span data-t="due">Due</span><strong id="payDue"></strong></div>
+      <div><span data-t="given">Given</span><strong id="payGiven"></strong></div>
+    </div>
+    <div class="paystatus" id="payStatus" aria-live="polite"></div>
+    <div class="chips" id="payChips"></div>
+    </div>
+    <div class="pay-right">
+    <h3 data-t="notes">Notes</h3>
+    <div class="notes" id="payNotes"></div>
+    <h3 data-t="coins">Coins</h3>
+    <div class="coins" id="payCoins"></div>
+    </div>
+    </div>
+    <div class="mfoot">
+      <button class="ghost" id="payExact" data-t="exact">Exact amount</button>
+      <button class="ghost" id="payClear" data-t-aria="clearGiven" aria-label="Clear"><span class="lf" data-t="clearGiven">Clear</span><span class="ls" aria-hidden="true">↺</span></button>
+      <button class="solid" id="payConfirm"></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="undo">Undo</button></div>
+
+<script>
+(function(){
+  const KEY_MENU = "orderTally.menu.v1";
+  const KEY_ORDER = "orderTally.order.v1";
+  const KEY_LANG = "orderTally.lang.v1";
+  const KEY_HIST = "orderTally.history.v1";
+  const HIST_MAX = 1000;
+  const HIST_SHOWN = 10;
+
+  /* ---------- translations ---------- */
+  const STR = {
+    en: {
+      appName:"Order Tally", editMenu:"Edit menu", done:"Done", menu:"Menu",
+      food:"Food", drinks:"Drinks",
+      emptyFood:"No food yet. Use “Edit menu” to add some.",
+      emptyDrinks:"No drinks yet. Use “Edit menu” to add some.",
+      addTitle:"Add a button", editTitle:n=>`Edit “${n}”`,
+      name:"Name", namePh:"e.g. Hot dog", price:"Price", pricePh:"4.50", icon:"Icon", type:"Type",
+      optFood:"Food", optDrink:"Drink",
+      add:"Add button", saveChanges:"Save changes", cancelEdit:"Cancel edit",
+      hint:"Tap a button above to edit it, or × to remove it.",
+      restore:"Restore default menu",
+      order:"Order", total:"Total",
+      nothing:"Nothing ordered yet.<br>Tap a button to add it.",
+      each:p=>`${p} each`, items:n=>n===1?"1 item":`${n} items`,
+      reset:"Reset", sure:"Sure?", pay:"Pay",
+      payTitle:"Payment", due:"Due", given:"Given", notes:"Notes", coins:"Coins",
+      exact:"Exact amount", clearGiven:"Clear", confirmPay:"Complete payment", confirmShort:"Complete", close:"Close",
+      tapMoney:"Tap the notes and coins you received.",
+      missing:t=>`${t} still missing`, change:"Change", noChange:"Exact, no change due.",
+      giveBack:"Give back:", removeOne:l=>`Remove one ${l}`,
+      toastPaidChange:(t,c)=>`Paid ${t}. Change ${c}.`, histGiven:(g,c)=>`Given ${g}, change ${c}`,
+      cents:v=>`${v}c`,
+      history:"History", clearHistory:"Clear history",
+      noHistory:"Orders you mark as paid appear here.",
+      todaySum:(sum,n)=>`Today: ${sum} from ${n===1?"1 order":n+" orders"}`,
+      noneToday:"No paid orders today yet.",
+      showAll:n=>`Show all (${n})`, showLess:"Show less",
+      toastPaid:t=>`Paid ${t}. Saved to history.`, undo:"Undo",
+      confirmDelEntry:"Remove this order from the history?",
+      confirmClear:"Clear the whole history? This can’t be undone.",
+      ariaDelEntry:"Remove from history",
+      more:"More", moreSub:"History, evaluation and language", language:"Language",
+      stats:"Evaluation", pToday:"Today", pWeek:"7 days", pAll:"All time",
+      kSales:"Total sales", kOrders:"Orders", kAvg:"Average order", kItems:"Items sold",
+      foodDrinks:"Food and drinks", itemsHead:"Sold per item", byHour:"Sales by hour",
+      colItem:"Item", colQty:"Qty", colRev:"Sales",
+      foodLbl:"Food", drinkLbl:"Drinks", otherLbl:"Other",
+      noStats:"No paid orders in this period yet.",
+      exportJson:"Export as JSON", copyJson:"Copy JSON",
+      exported:"Export saved.", copied:"JSON copied to the clipboard.",
+      exportFailed:"This browser blocked the file. Use “Copy JSON” instead.",
+      exportDeclined:"Export cancelled.", copyFailed:"Copying failed. Try “Export as JSON”.",
+      saved:"Menu, order and history are saved on this device.", showOrder:"Show order",
+      errName:"Enter a name for the button.", errPrice:"Enter a price like 4.50.",
+      confirmDel:n=>`Remove “${n}” from the menu?`,
+      confirmRestore:"Replace your menu with the default five buttons? The current order will be cleared.",
+      ariaKey:(n,p,c)=>`${n}, ${p}${c?`, ordered ${c}`:""}`,
+      ariaDel:n=>`Remove ${n}`, ariaMinus:n=>`Remove one ${n}`, ariaPlus:n=>`Add one ${n}`
+    },
+    de: {
+      appName:"Strichliste", editMenu:"Bearbeiten", done:"Fertig", menu:"Menü",
+      food:"Speisen", drinks:"Getränke",
+      emptyFood:"Noch keine Speisen. Über „Bearbeiten“ hinzufügen.",
+      emptyDrinks:"Noch keine Getränke. Über „Bearbeiten“ hinzufügen.",
+      addTitle:"Button hinzufügen", editTitle:n=>`„${n}“ bearbeiten`,
+      name:"Name", namePh:"z. B. Hotdog", price:"Preis", pricePh:"4,50", icon:"Symbol", type:"Art",
+      optFood:"Speise", optDrink:"Getränk",
+      add:"Button hinzufügen", saveChanges:"Änderungen speichern", cancelEdit:"Abbrechen",
+      hint:"Tippe oben auf einen Button, um ihn zu bearbeiten, oder auf ×, um ihn zu entfernen.",
+      restore:"Standardmenü wiederherstellen",
+      order:"Bestellung", total:"Summe",
+      nothing:"Noch nichts bestellt.<br>Tippe auf einen Button, um ihn hinzuzufügen.",
+      each:p=>`je ${p}`, items:n=>n===1?"1 Artikel":`${n} Artikel`,
+      reset:"Leeren", sure:"Sicher?", pay:"Bezahlen",
+      payTitle:"Bezahlung", due:"Zu zahlen", given:"Gegeben", notes:"Scheine", coins:"Münzen",
+      exact:"Passend", clearGiven:"Zurücksetzen", confirmPay:"Bezahlung abschließen", confirmShort:"Abschließen", close:"Schließen",
+      tapMoney:"Tippe auf die erhaltenen Scheine und Münzen.",
+      missing:t=>`Es fehlen noch ${t}`, change:"Rückgeld", noChange:"Passend, kein Rückgeld.",
+      giveBack:"Herausgeben:", removeOne:l=>`${l} einmal entfernen`,
+      toastPaidChange:(t,c)=>`${t} bezahlt. Rückgeld ${c}.`, histGiven:(g,c)=>`Gegeben ${g}, Rückgeld ${c}`,
+      cents:v=>`${v} ct`,
+      history:"Verlauf", clearHistory:"Verlauf löschen",
+      noHistory:"Als bezahlt markierte Bestellungen erscheinen hier.",
+      todaySum:(sum,n)=>`Heute: ${sum} aus ${n===1?"1 Bestellung":n+" Bestellungen"}`,
+      noneToday:"Heute noch keine bezahlten Bestellungen.",
+      showAll:n=>`Alle anzeigen (${n})`, showLess:"Weniger anzeigen",
+      toastPaid:t=>`${t} bezahlt. Im Verlauf gespeichert.`, undo:"Rückgängig",
+      confirmDelEntry:"Diese Bestellung aus dem Verlauf entfernen?",
+      confirmClear:"Gesamten Verlauf löschen? Das kann nicht rückgängig gemacht werden.",
+      ariaDelEntry:"Aus dem Verlauf entfernen",
+      more:"Mehr", moreSub:"Verlauf, Auswertung und Sprache", language:"Sprache",
+      stats:"Auswertung", pToday:"Heute", pWeek:"7 Tage", pAll:"Gesamt",
+      kSales:"Umsatz", kOrders:"Bestellungen", kAvg:"Ø pro Bestellung", kItems:"Verkaufte Artikel",
+      foodDrinks:"Speisen und Getränke", itemsHead:"Verkauft pro Artikel", byHour:"Umsatz nach Uhrzeit",
+      colItem:"Artikel", colQty:"Anz.", colRev:"Umsatz",
+      foodLbl:"Speisen", drinkLbl:"Getränke", otherLbl:"Sonstiges",
+      noStats:"In diesem Zeitraum gibt es noch keine bezahlten Bestellungen.",
+      exportJson:"Als JSON exportieren", copyJson:"JSON kopieren",
+      exported:"Export gespeichert.", copied:"JSON in die Zwischenablage kopiert.",
+      exportFailed:"Der Browser hat die Datei blockiert. Nutze stattdessen „JSON kopieren“.",
+      exportDeclined:"Export abgebrochen.", copyFailed:"Kopieren fehlgeschlagen. Versuche „Als JSON exportieren“.",
+      saved:"Menü, Bestellung und Verlauf werden auf diesem Gerät gespeichert.", showOrder:"Bestellung anzeigen",
+      errName:"Gib einen Namen für den Button ein.", errPrice:"Gib einen Preis wie 4,50 ein.",
+      confirmDel:n=>`„${n}“ aus dem Menü entfernen?`,
+      confirmRestore:"Menü durch die fünf Standard-Buttons ersetzen? Die aktuelle Bestellung wird geleert.",
+      ariaKey:(n,p,c)=>`${n}, ${p}${c?`, ${c}-mal bestellt`:""}`,
+      ariaDel:n=>`${n} entfernen`, ariaMinus:n=>`Ein ${n} weniger`, ariaPlus:n=>`Ein ${n} mehr`
+    }
+  };
+
+  const DEFAULT_MENU = [
+    {id:"fries",  names:{en:"Fries",       de:"Pommes"},      price:350,  type:"food",  emoji:"🍟"},
+    {id:"burger", names:{en:"Burger",      de:"Burger"},      price:890,  type:"food",  emoji:"🍔"},
+    {id:"steak",  names:{en:"Steak plate", de:"Steakteller"}, price:1950, type:"food",  emoji:"🥩"},
+    {id:"lemon",  names:{en:"Lemonade",    de:"Limonade"},    price:280,  type:"drink", emoji:"🍋"},
+    {id:"beer",   names:{en:"Beer",        de:"Bier"},        price:420,  type:"drink", emoji:"🍺"}
+  ];
+  const DEFAULT_NAMES = Object.fromEntries(DEFAULT_MENU.map(d => [d.id, d.names]));
+
+  function load(key, fallback){
+    try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch(e){ return fallback; }
+  }
+  function save(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+  const clone = () => DEFAULT_MENU.map(x => ({...x, names:{...x.names}}));
+
+  let menu = load(KEY_MENU, null);
+  if(!Array.isArray(menu)) menu = clone();
+  menu.forEach(m => {
+    delete m.alc;
+    // older saves stored default items with a fixed English name: make them translatable again
+    const dn = DEFAULT_NAMES[m.id];
+    if(dn && !m.names && m.name === dn.en){ m.names = {...dn}; delete m.name; }
+  });
+  let order = load(KEY_ORDER, {});
+  if(!order || typeof order !== "object") order = {};
+  const currency = "€";
+  try{ localStorage.removeItem("orderTally.currency.v1"); }catch(e){}
+  let history = load(KEY_HIST, []);
+  if(!Array.isArray(history)) history = [];
+  let showAllHistory = false;
+  let period = "today";
+  let lang = load(KEY_LANG, null);
+  if(lang !== "en" && lang !== "de"){
+    const nav = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
+    lang = /^de\b/i.test(nav) ? "de" : "en";
+  }
+  let editing = false;
+  let editId = null;
+
+  const $ = id => document.getElementById(id);
+  const app = $("app");
+  const T = k => STR[lang][k];
+  const nm = m => m.name || (m.names && (m.names[lang] || m.names.en)) || "";
+
+  function decimal(cents){
+    const n = (cents/100).toFixed(2);
+    return lang === "de" ? n.replace(".", ",") : n;
+  }
+  function money(cents){
+    return lang === "de" ? `${decimal(cents)}\u00a0${currency}`.trim() : currency + decimal(cents);
+  }
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  /* ---------- static text ---------- */
+  function applyLang(){
+    document.documentElement.lang = lang;
+    document.title = T("appName");
+    document.querySelectorAll("[data-t]").forEach(el => el.textContent = T(el.dataset.t));
+    document.querySelectorAll("[data-t-ph]").forEach(el => el.placeholder = T(el.dataset.tPh));
+    document.querySelectorAll("[data-t-aria]").forEach(el => el.setAttribute("aria-label", T(el.dataset.tAria)));
+    document.querySelectorAll(".lang").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+    $("editToggle").textContent = editing ? T("done") : T("editMenu");
+    disarm();
+    refreshEditorText();
+    render();
+    if(!$("payModal").hidden){ buildMoneyButtons(); renderPay(); }
+  }
+  document.querySelectorAll(".lang").forEach(b => b.addEventListener("click", () => {
+    lang = b.dataset.lang;
+    save(KEY_LANG, lang);
+    applyLang();
+  }));
+
+  /* ---------- keys ---------- */
+  function renderKeys(bumpId){
+    for(const type of ["food","drink"]){
+      const box = $(type === "food" ? "foodKeys" : "drinkKeys");
+      const items = menu.filter(m => m.type === type);
+      if(!items.length){
+        box.innerHTML = `<p class="empty-group">${esc(T(type === "food" ? "emptyFood" : "emptyDrinks"))}</p>`;
+        continue;
+      }
+      box.innerHTML = items.map(m => {
+        const c = order[m.id] || 0;
+        const n = nm(m);
+        return `<div class="slot">
+          <button class="key ${type}" data-id="${m.id}" aria-label="${esc(T("ariaKey")(n, money(m.price), c))}">
+            <span class="emoji" aria-hidden="true">${esc(m.emoji || (type==="food"?"🍽️":"🥤"))}</span>
+            <span class="name">${esc(n)}</span>
+            <span class="price">${money(m.price)}</span>
+            ${c ? `<span class="count${bumpId===m.id?" bump":""}" aria-hidden="true">${c}</span>` : ""}
+          </button>
+          <button class="del" data-del="${m.id}" aria-label="${esc(T("ariaDel")(n))}">×</button>
+        </div>`;
+      }).join("");
+    }
+  }
+
+  /* ---------- receipt ---------- */
+  function renderOrder(){
+    const ids = Object.keys(order).filter(id => order[id] > 0 && menu.some(m => m.id === id));
+    let total = 0, count = 0;
+    const lines = $("lines");
+    if(!ids.length){
+      lines.innerHTML = `<li class="nothing">${T("nothing")}</li>`;
+    }else{
+      lines.innerHTML = ids.map(id => {
+        const m = menu.find(x => x.id === id);
+        const q = order[id];
+        const n = nm(m);
+        total += q * m.price; count += q;
+        return `<li class="line">
+          <span class="qty">${q}×</span>
+          <span class="lname">${esc(n)}</span>
+          <span class="lsum">${money(q*m.price)}</span>
+          <span class="each">${esc(T("each")(money(m.price)))}</span>
+          <span class="steppers">
+            <button class="step" data-minus="${id}" aria-label="${esc(T("ariaMinus")(n))}">−</button>
+            <button class="step" data-plus="${id}" aria-label="${esc(T("ariaPlus")(n))}">+</button>
+          </span>
+        </li>`;
+      }).join("");
+    }
+    const label = T("items")(count);
+    $("total").textContent = money(total);
+    $("itemsum").textContent = label;
+    $("barTotal").textContent = money(total);
+    $("barCount").textContent = label;
+    $("tabBadge").hidden = count === 0;
+    $("tabBadge").textContent = count;
+    $("reset").disabled = $("reset2").disabled = $("paid").disabled = $("paid2").disabled = count === 0;
+    $("stamp").textContent = new Date().toLocaleString(lang === "de" ? "de-DE" : undefined, {dateStyle:"medium", timeStyle:"short"});
+  }
+
+  /* ---------- history ---------- */
+  const lineName = l => l.name || (l.names && (l.names[lang] || l.names.en)) || "";
+  const sameDay = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  function renderHistory(){
+    const loc = lang === "de" ? "de-DE" : undefined;
+    const now = new Date();
+    const today = history.filter(h => sameDay(new Date(h.t), now));
+    const todayTotal = today.reduce((a,h) => a + h.total, 0);
+    $("hsum").textContent = history.length ? (today.length ? T("todaySum")(money(todayTotal), today.length) : T("noneToday")) : "";
+    $("clearHistory").hidden = !history.length;
+    const list = [...history].reverse();
+    const shown = showAllHistory ? list : list.slice(0, HIST_SHOWN);
+    $("hlist").innerHTML = !history.length
+      ? `<li class="hempty">${esc(T("noHistory"))}</li>`
+      : shown.map(h => {
+          const d = new Date(h.t);
+          const when = sameDay(d, now)
+            ? d.toLocaleTimeString(loc, {timeStyle:"short"})
+            : d.toLocaleString(loc, {dateStyle:"medium", timeStyle:"short"});
+          const items = h.lines.map(l => `${l.qty}× ${lineName(l)}`).join(", ");
+          return `<li class="hentry">
+            <div class="htop">
+              <span class="htime">${esc(when)}</span>
+              <span class="htotal">${money(h.total)}</span>
+              <button class="hdel" data-hdel="${h.t}" aria-label="${esc(T("ariaDelEntry"))}">×</button>
+            </div>
+            <div class="hitems">${esc(items)}</div>
+            ${h.change > 0 ? `<div class="hgiven">${esc(T("histGiven")(money(h.given), money(h.change)))}</div>` : ""}
+          </li>`;
+        }).join("");
+    const more = $("hmore");
+    more.hidden = history.length <= HIST_SHOWN;
+    more.textContent = showAllHistory ? T("showLess") : T("showAll")(history.length);
+    renderStats();
+  }
+
+  /* ---------- evaluation ---------- */
+  function periodEntries(){
+    const now = new Date();
+    if(period === "today") return history.filter(h => sameDay(new Date(h.t), now));
+    if(period === "week"){
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).getTime();
+      return history.filter(h => h.t >= start);
+    }
+    return history.slice();
+  }
+  function lineType(l){
+    if(l.type) return l.type;
+    const m = menu.find(x => x.id === l.id);
+    return m ? m.type : "other";
+  }
+  function computeStats(entries){
+    const items = new Map();
+    const byType = {food:0, drink:0, other:0};
+    const hours = new Array(24).fill(0);
+    let sales = 0, qty = 0;
+    for(const h of entries){
+      sales += h.total;
+      hours[new Date(h.t).getHours()] += h.total;
+      for(const l of h.lines){
+        const type = lineType(l);
+        const key = l.id || lineName(l);
+        const it = items.get(key) || {id:key, line:l, type, qty:0, revenue:0};
+        it.line = l; // latest snapshot wins for the display name
+        it.qty += l.qty; it.revenue += l.qty * l.price;
+        items.set(key, it);
+        byType[type] = (byType[type] || 0) + l.qty * l.price;
+        qty += l.qty;
+      }
+    }
+    const list = [...items.values()].sort((a,b) => b.revenue - a.revenue || b.qty - a.qty);
+    return {orders: entries.length, sales, qty, avg: entries.length ? Math.round(sales/entries.length) : 0, list, byType, hours};
+  }
+  function renderStats(){
+    document.querySelectorAll("#periods button").forEach(b => b.setAttribute("aria-pressed", b.dataset.period === period));
+    const entries = periodEntries();
+    const st = computeStats(entries);
+    $("exportJson").disabled = $("copyJson").disabled = !entries.length;
+    if(!entries.length){
+      $("statsBody").innerHTML = `<p class="sempty">${esc(T("noStats"))}</p>`;
+      return;
+    }
+    const pct = v => st.sales ? (v / st.sales * 100) : 0;
+    const maxRev = Math.max(...st.list.map(i => i.revenue), 1);
+    const usedHours = st.hours.map((v,i) => [i,v]).filter(([,v]) => v > 0).map(([i]) => i);
+    const hFrom = Math.min(...usedHours), hTo = Math.max(...usedHours);
+    const maxHour = Math.max(...st.hours, 1);
+    let hoursHtml = "";
+    for(let h = hFrom; h <= hTo; h++){
+      const v = st.hours[h];
+      hoursHtml += `<div class="hcol" title="${h}:00 – ${money(v)}"><i style="height:${Math.max(2, v/maxHour*100)}%"></i><small>${h}</small></div>`;
+    }
+    const other = st.byType.other || 0;
+    $("statsBody").innerHTML = `
+      <div class="kpis">
+        <div class="kpi"><b>${money(st.sales)}</b><span>${esc(T("kSales"))}</span></div>
+        <div class="kpi"><b>${st.orders}</b><span>${esc(T("kOrders"))}</span></div>
+        <div class="kpi"><b>${money(st.avg)}</b><span>${esc(T("kAvg"))}</span></div>
+        <div class="kpi"><b>${st.qty}</b><span>${esc(T("kItems"))}</span></div>
+      </div>
+      <h3>${esc(T("foodDrinks"))}</h3>
+      <div class="splitbar" aria-hidden="true">
+        <i class="f" style="width:${pct(st.byType.food)}%"></i><i class="d" style="width:${pct(st.byType.drink)}%"></i>
+      </div>
+      <div class="splitlegend">
+        <span class="f">${esc(T("foodLbl"))}: ${money(st.byType.food)} (${Math.round(pct(st.byType.food))} %)</span>
+        <span class="d">${esc(T("drinkLbl"))}: ${money(st.byType.drink)} (${Math.round(pct(st.byType.drink))} %)</span>
+        ${other ? `<span>${esc(T("otherLbl"))}: ${money(other)}</span>` : ""}
+      </div>
+      <h3>${esc(T("itemsHead"))}</h3>
+      <div class="tablewrap"><table class="itable">
+        <thead><tr><th>${esc(T("colItem"))}</th><th class="num">${esc(T("colQty"))}</th><th class="num">${esc(T("colRev"))}</th></tr></thead>
+        <tbody>${st.list.map(i => `<tr>
+          <td class="iname">${esc(lineName(i.line))}<div class="ibar${i.type==="drink"?" d":""}" style="width:${i.revenue/maxRev*100}%"></div></td>
+          <td class="num">${i.qty}×</td>
+          <td class="num">${money(i.revenue)}</td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+      <h3>${esc(T("byHour"))}</h3>
+      <div class="hours">${hoursHtml}</div>`;
+  }
+  document.querySelectorAll("#periods button").forEach(b => b.addEventListener("click", () => {
+    period = b.dataset.period;
+    $("xmsg").textContent = "";
+    renderStats();
+  }));
+
+  /* ---------- JSON export ---------- */
+  const dec = c => Math.round(c) / 100;
+  function buildExport(){
+    const entries = periodEntries();
+    const st = computeStats(entries);
+    const now = new Date();
+    const data = {
+      app: "Order Tally",
+      format: 1,
+      exportedAt: now.toISOString(),
+      period,
+      language: lang,
+      currency,
+      summary: {
+        orders: st.orders,
+        itemsSold: st.qty,
+        totalSales: dec(st.sales),
+        averageOrder: dec(st.avg),
+        salesByType: {food: dec(st.byType.food), drink: dec(st.byType.drink), other: dec(st.byType.other || 0)},
+        salesByHour: Object.fromEntries(st.hours.map((v,h) => [String(h).padStart(2,"0") + ":00", dec(v)]).filter(([,v]) => v > 0))
+      },
+      items: st.list.map(i => ({id: i.id, name: lineName(i.line), type: i.type, quantity: i.qty, revenue: dec(i.revenue)})),
+      orders: entries.map(h => ({
+        paidAt: new Date(h.t).toISOString(),
+        total: dec(h.total),
+        given: dec(h.given != null ? h.given : h.total),
+        change: dec(h.change || 0),
+        lines: h.lines.map(l => ({id: l.id, name: lineName(l), type: lineType(l), quantity: l.qty, unitPrice: dec(l.price), subtotal: dec(l.qty * l.price)}))
+      }))
+    };
+    const d = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0") + "-" + String(now.getDate()).padStart(2,"0");
+    const base = lang === "de" ? "strichliste" : "order-tally";
+    return {json: JSON.stringify(data, null, 2), filename: `${base}-${period}-${d}.json`};
+  }
+
+  // Resolve the viewer's download capability early so the click handler can use it right away.
+  let downloads = null;
+  try{
+    if(window.claude && typeof window.claude.use === "function"){
+      window.claude.use("downloads").then(d => { downloads = d; }).catch(() => {});
+    }
+  }catch(e){}
+
+  function xmsg(t){ $("xmsg").textContent = t; }
+
+  $("exportJson").addEventListener("click", async () => {
+    const {json, filename} = buildExport();
+    if(downloads){
+      try{ await downloads.save({filename, data: json}); xmsg(T("exported")); return; }
+      catch(e){
+        const code = e && e.code;
+        if(code === "declined"){ xmsg(T("exportDeclined")); return; }
+        if(code === "rate_limited"){ return; }
+        // otherwise fall through to the browser's own options
+      }
+    }
+    try{
+      const file = new File([json], filename, {type:"application/json"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title: filename});
+        xmsg(T("exported"));
+        return;
+      }
+    }catch(e){
+      if(e && e.name === "AbortError"){ xmsg(T("exportDeclined")); return; }
+    }
+    try{
+      const url = URL.createObjectURL(new Blob([json], {type:"application/json"}));
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      xmsg(T("exported"));
+    }catch(e){
+      xmsg(T("exportFailed"));
+    }
+  });
+
+  $("copyJson").addEventListener("click", async () => {
+    const {json} = buildExport();
+    try{
+      await navigator.clipboard.writeText(json);
+      xmsg(T("copied"));
+    }catch(e){
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = json; ta.setAttribute("readonly",""); ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        xmsg(ok ? T("copied") : T("copyFailed"));
+      }catch(_){ xmsg(T("copyFailed")); }
+    }
+  });
+
+  function render(bumpId){ renderKeys(bumpId); renderOrder(); renderHistory(); fitKeys(); }
+
+  function add(id, delta){
+    order[id] = Math.max(0, (order[id] || 0) + delta);
+    if(order[id] === 0) delete order[id];
+    save(KEY_ORDER, order);
+    render(delta > 0 ? id : null);
+    if(delta > 0 && navigator.vibrate) navigator.vibrate(12);
+  }
+
+  /* ---------- clicks ---------- */
+  document.addEventListener("click", e => {
+    const del = e.target.closest("[data-del]");
+    if(del){
+      const id = del.dataset.del;
+      const m = menu.find(x => x.id === id);
+      if(m && confirm(T("confirmDel")(nm(m)))){
+        menu = menu.filter(x => x.id !== id);
+        delete order[id];
+        save(KEY_MENU, menu); save(KEY_ORDER, order);
+        if(editId === id) clearForm();
+        render();
+      }
+      return;
+    }
+    const hdel = e.target.closest("[data-hdel]");
+    if(hdel){
+      if(confirm(T("confirmDelEntry"))){
+        history = history.filter(h => String(h.t) !== hdel.dataset.hdel);
+        save(KEY_HIST, history);
+        renderHistory();
+      }
+      return;
+    }
+    const key = e.target.closest(".key");
+    if(key){
+      if(editing) startEdit(key.dataset.id);
+      else add(key.dataset.id, 1);
+      return;
+    }
+    const minus = e.target.closest("[data-minus]");
+    if(minus){ add(minus.dataset.minus, -1); return; }
+    const plus = e.target.closest("[data-plus]");
+    if(plus){ add(plus.dataset.plus, 1); return; }
+  });
+
+  /* ---------- reset with second-tap confirm ---------- */
+  let armTimer = null;
+  function handleReset(){
+    const btns = [$("reset"), $("reset2")];
+    if(!btns[0].classList.contains("armed")){
+      btns.forEach(b => b.classList.add("armed"));
+      btns.forEach(b => b.textContent = T("sure"));
+      clearTimeout(armTimer);
+      armTimer = setTimeout(disarm, 3000);
+      return;
+    }
+    order = {};
+    save(KEY_ORDER, order);
+    disarm();
+    render();
+  }
+  function disarm(){
+    clearTimeout(armTimer);
+    [$("reset"), $("reset2")].forEach(b => b.classList.remove("armed"));
+    $("reset").textContent = T("reset");
+    $("reset2").textContent = T("reset");
+  }
+  $("reset").addEventListener("click", handleReset);
+  $("reset2").addEventListener("click", handleReset);
+  let toastTimer = null, lastPaid = null;
+  function finalizePayment(given){
+    const ids = Object.keys(order).filter(id => order[id] > 0 && menu.some(m => m.id === id));
+    if(!ids.length) return;
+    const lines = ids.map(id => {
+      const m = menu.find(x => x.id === id);
+      const l = {id, qty:order[id], price:m.price, type:m.type};
+      if(m.name) l.name = m.name; else l.names = {...m.names};
+      return l;
+    });
+    const total = lines.reduce((a,l) => a + l.qty*l.price, 0);
+    if(!(given >= total)) given = total;
+    let t = Date.now();
+    if(history.length && history[history.length-1].t >= t) t = history[history.length-1].t + 1;
+    const entry = {t, lines, total, given, change: given - total};
+    lastPaid = {entry, order:{...order}};
+    history.push(entry);
+    if(history.length > HIST_MAX) history = history.slice(-HIST_MAX);
+    order = {};
+    save(KEY_HIST, history); save(KEY_ORDER, order);
+    disarm();
+    render();
+    $("toastMsg").textContent = entry.change > 0 ? T("toastPaidChange")(money(total), money(entry.change)) : T("toastPaid")(money(total));
+    $("undo").textContent = T("undo");
+    $("toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { $("toast").hidden = true; lastPaid = null; }, 6000);
+  }
+
+  /* ---------- payment sheet ---------- */
+  const NOTES = [500, 1000, 2000, 5000, 10000, 20000];
+  const COINS = [200, 100, 50, 20, 10, 5, 2, 1];
+  const DENOMS = [...NOTES].reverse().concat(COINS);
+  let given = {};      // cents value -> count
+  let exact = false;
+  let lastFocus = null;
+
+  const orderTotal = () => Object.keys(order)
+    .filter(id => order[id] > 0)
+    .reduce((a,id) => { const m = menu.find(x => x.id === id); return a + (m ? m.price*order[id] : 0); }, 0);
+  const givenSum = () => exact ? orderTotal() : Object.entries(given).reduce((a,[v,c]) => a + Number(v)*c, 0);
+  function denomLabel(v){
+    if(v < 100) return T("cents")(v);
+    const n = String(v/100);
+    return lang === "de" ? `${n}\u00a0${currency}`.trim() : currency + n;
+  }
+  function breakdown(c){
+    const parts = [];
+    for(const d of DENOMS){
+      const k = Math.floor(c / d);
+      if(k){ parts.push((k > 1 ? k + "× " : "") + denomLabel(d)); c -= k*d; }
+    }
+    return parts.join(" + ");
+  }
+  function buildMoneyButtons(){
+    $("payNotes").innerHTML = NOTES.map(v => `<button class="money note n${v}" data-money="${v}">${esc(denomLabel(v))}</button>`).join("");
+    $("payCoins").innerHTML = COINS.map(v => `<button class="money coin c${v}" data-money="${v}">${esc(denomLabel(v))}</button>`).join("");
+  }
+  function renderPay(){
+    const due = orderTotal();
+    const g = givenSum();
+    $("payDue").textContent = money(due);
+    $("payGiven").textContent = money(g);
+    document.querySelectorAll("[data-money]").forEach(b => {
+      const v = Number(b.dataset.money), c = given[v] || 0;
+      let badge = b.querySelector(".mcount");
+      if(c){
+        if(!badge){ badge = document.createElement("span"); badge.className = "mcount"; badge.setAttribute("aria-hidden","true"); b.appendChild(badge); }
+        badge.textContent = c;
+      }else if(badge) badge.remove();
+    });
+    $("payChips").innerHTML = exact ? "" : DENOMS.filter(v => given[v]).map(v =>
+      `<button class="chip" data-unmoney="${v}" aria-label="${esc(T("removeOne")(denomLabel(v)))}">${given[v]}× ${esc(denomLabel(v))}</button>`).join("");
+    const st = $("payStatus");
+    if(!exact && g === 0){
+      st.className = "paystatus idle"; st.textContent = T("tapMoney");
+    }else if(g < due){
+      st.className = "paystatus short"; st.innerHTML = `<span class="big">${esc(T("missing")(money(due - g)))}</span>`;
+    }else if(g === due){
+      st.className = "paystatus ok"; st.textContent = T("noChange");
+    }else{
+      st.className = "paystatus ok";
+      st.innerHTML = `<span>${esc(T("change"))}</span> <span class="big">${money(g - due)}</span><small>${esc(T("giveBack"))} ${esc(breakdown(g - due))}</small>`;
+    }
+    $("payConfirm").disabled = g < due || due === 0;
+    if(!$("payConfirm").dataset.lang || $("payConfirm").dataset.lang !== lang){
+      $("payConfirm").innerHTML = `<span class="lf">${esc(T("confirmPay"))}</span><span class="ls">${esc(T("confirmShort"))}</span>`;
+      $("payConfirm").dataset.lang = lang;
+    }
+    $("payClear").disabled = !exact && g === 0;
+  }
+  function openPay(){
+    if(!orderTotal()) return;
+    given = {}; exact = false;
+    disarm();
+    buildMoneyButtons();
+    renderPay();
+    lastFocus = document.activeElement;
+    $("payModal").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("payModal").querySelector(".sheet").scrollTop = 0;
+    $("payClose").focus({preventScroll:true});
+  }
+  function closePay(){
+    $("payModal").hidden = true;
+    document.body.style.overflow = "";
+    if(lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true});
+  }
+  $("paid").addEventListener("click", openPay);
+  $("paid2").addEventListener("click", openPay);
+  $("payClose").addEventListener("click", closePay);
+  $("payModal").addEventListener("click", e => {
+    if(e.target === $("payModal")) { closePay(); return; }
+    const m = e.target.closest("[data-money]");
+    if(m){
+      if(exact){ exact = false; given = {}; }
+      const v = Number(m.dataset.money);
+      given[v] = (given[v] || 0) + 1;
+      renderPay();
+      if(navigator.vibrate) navigator.vibrate(10);
+      return;
+    }
+    const u = e.target.closest("[data-unmoney]");
+    if(u){
+      const v = Number(u.dataset.unmoney);
+      if(given[v] > 1) given[v]--; else delete given[v];
+      renderPay();
+    }
+  });
+  $("payExact").addEventListener("click", () => { exact = true; given = {}; renderPay(); });
+  $("payClear").addEventListener("click", () => { exact = false; given = {}; renderPay(); });
+  $("payConfirm").addEventListener("click", () => {
+    const g = givenSum();
+    if(g < orderTotal()) return;
+    closePay();
+    finalizePayment(g);
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape" && !$("payModal").hidden) closePay();
+  });
+  $("undo").addEventListener("click", () => {
+    if(!lastPaid) return;
+    history = history.filter(h => h.t !== lastPaid.entry.t);
+    order = lastPaid.order;
+    lastPaid = null;
+    save(KEY_HIST, history); save(KEY_ORDER, order);
+    $("toast").hidden = true;
+    render();
+  });
+  $("clearHistory").addEventListener("click", () => {
+    if(!confirm(T("confirmClear"))) return;
+    history = [];
+    save(KEY_HIST, history);
+    showAllHistory = false;
+    renderHistory();
+  });
+  $("hmore").addEventListener("click", () => { showAllHistory = !showAllHistory; renderHistory(); });
+  $("jump").addEventListener("click", () => goTab(1));
+
+  /* ---------- editor ---------- */
+  $("editToggle").addEventListener("click", () => {
+    editing = !editing;
+    app.classList.toggle("editing", editing);
+    $("editToggle").setAttribute("aria-pressed", editing);
+    $("editToggle").textContent = editing ? T("done") : T("editMenu");
+    if(!editing) clearForm();
+    goTab(0);
+    $("pMenu").scrollTop = 0;
+    fitKeys();
+  });
+
+  function refreshEditorText(){
+    const m = editId && menu.find(x => x.id === editId);
+    $("editorTitle").textContent = m ? T("editTitle")(nm(m)) : T("addTitle");
+    $("fSave").textContent = m ? T("saveChanges") : T("add");
+    if($("fErr").textContent) $("fErr").textContent = "";
+  }
+  function clearForm(){
+    editId = null;
+    $("editor").reset();
+    $("fCancel").hidden = true;
+    $("fErr").textContent = "";
+    refreshEditorText();
+  }
+  function startEdit(id){
+    const m = menu.find(x => x.id === id);
+    if(!m) return;
+    editId = id;
+    $("fName").value = nm(m);
+    $("fPrice").value = decimal(m.price);
+    $("fEmoji").value = m.emoji || "";
+    $("fType").value = m.type;
+    $("fCancel").hidden = false;
+    $("fErr").textContent = "";
+    refreshEditorText();
+    $("editor").scrollIntoView({behavior:"smooth", block:"center"});
+    $("fName").focus({preventScroll:true});
+  }
+  $("fCancel").addEventListener("click", clearForm);
+
+  $("editor").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("fName").value.trim();
+    const raw = $("fPrice").value.trim().replace(",", ".");
+    const price = Math.round(parseFloat(raw) * 100);
+    if(!name){ $("fErr").textContent = T("errName"); return; }
+    if(!raw || !isFinite(price) || price < 0){ $("fErr").textContent = T("errPrice"); return; }
+    const item = { price, type: $("fType").value, emoji: $("fEmoji").value.trim() };
+    if(editId){
+      const i = menu.findIndex(x => x.id === editId);
+      if(i > -1){
+        const old = menu[i];
+        const next = {...old, ...item};
+        // keep a default item translatable unless its name was actually changed
+        if(!(old.names && name === nm(old))){ next.name = name; delete next.names; }
+        menu[i] = next;
+      }
+    }else{
+      menu.push({id: "i" + Date.now().toString(36) + Math.random().toString(36).slice(2,5), name, ...item});
+    }
+    save(KEY_MENU, menu);
+    clearForm();
+    render();
+  });
+
+  $("restore").addEventListener("click", () => {
+    if(!confirm(T("confirmRestore"))) return;
+    menu = clone();
+    order = {};
+    save(KEY_MENU, menu); save(KEY_ORDER, order);
+    clearForm();
+    render();
+  });
+
+  /* ---------- home-screen icon + manifest ---------- */
+  try{
+    const c = document.createElement("canvas");
+    c.width = c.height = 512;
+    const g = c.getContext("2d");
+    g.fillStyle = "#21412f"; g.fillRect(0,0,512,512);
+    g.fillStyle = "#fffdf6"; g.fillRect(126,96,260,320);
+    g.fillStyle = "#21412f";
+    for(let y=150; y<330; y+=46){ g.fillRect(160,y,120,16); g.fillRect(300,y,52,16); }
+    g.fillStyle = "#f0c04a"; g.beginPath(); g.arc(378,380,70,0,Math.PI*2); g.fill();
+    g.fillStyle = "#2b2205"; g.font = "bold 92px sans-serif"; g.textAlign="center"; g.textBaseline="middle";
+    g.fillText("+",378,384);
+    const png = c.toDataURL("image/png");
+    const touch = document.createElement("link");
+    touch.rel = "apple-touch-icon"; touch.href = png;
+    document.head.appendChild(touch);
+    document.querySelector('meta[name="apple-mobile-web-app-title"]').content = T("appName");
+    const manifest = {
+      name:T("appName"), short_name:T("appName"), lang, display:"standalone",
+      start_url: location.href, scope: location.origin + "/",
+      background_color:"#e4e9e1", theme_color:"#21412f",
+      icons:[{src:png, sizes:"512x512", type:"image/png", purpose:"any"}]
+    };
+    const ml = document.createElement("link");
+    ml.rel = "manifest";
+    ml.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type:"application/manifest+json"}));
+    document.head.appendChild(ml);
+  }catch(e){}
+
+  /* ---------- panels, tabs and swiping (phones) ---------- */
+  const mqPhone = window.matchMedia("(max-width:859px)");
+  const track = $("track");
+  let tab = 0;
+  function goTab(i, instant){
+    tab = Math.max(0, Math.min(2, i));
+    if(instant) track.classList.add("dragging");
+    track.style.transform = mqPhone.matches ? `translateX(${-tab*100}%)` : "";
+    if(instant){ track.offsetWidth; track.classList.remove("dragging"); }
+    document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(Number(b.dataset.tab) === tab)));
+    // keep off-screen panels out of the tab order on phones
+    ["pMenu","pOrder","pMore"].forEach((id, k) => {
+      const hide = mqPhone.matches && k !== tab;
+      $(id).inert = hide;
+      $(id).setAttribute("aria-hidden", hide ? "true" : "false");
+    });
+  }
+  document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => goTab(Number(b.dataset.tab))));
+
+  // Swipe: only clearly horizontal drags count, and never from the screen edges
+  // (those belong to the browser's back/forward gestures). Taps are untouched.
+  const EDGE = 28, LOCK = 14;
+  let sw = null, suppressClick = false;
+  track.addEventListener("touchstart", e => {
+    if(!mqPhone.matches || e.touches.length !== 1 || editing) { sw = null; return; }
+    const t = e.touches[0];
+    if(t.clientX < EDGE || t.clientX > window.innerWidth - EDGE){ sw = null; return; }
+    sw = {x:t.clientX, y:t.clientY, t:Date.now(), mode:null, dx:0};
+  }, {passive:true});
+  track.addEventListener("touchmove", e => {
+    if(!sw) return;
+    const t = e.touches[0];
+    const dx = t.clientX - sw.x, dy = t.clientY - sw.y;
+    if(!sw.mode){
+      if(Math.abs(dx) < LOCK && Math.abs(dy) < LOCK) return;
+      sw.mode = Math.abs(dx) > Math.abs(dy) * 1.5 ? "h" : "v";
+      if(sw.mode === "h") track.classList.add("dragging");
+    }
+    if(sw.mode !== "h") return;
+    e.preventDefault();
+    let d = dx;
+    if((tab === 0 && dx > 0) || (tab === 2 && dx < 0)) d = dx / 3; // resist past the ends
+    sw.dx = dx;
+    track.style.transform = `translateX(calc(${-tab*100}% + ${d}px))`;
+  }, {passive:false});
+  function endSwipe(){
+    if(!sw) return;
+    if(sw.mode === "h"){
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 350);
+      track.classList.remove("dragging");
+      const w = track.clientWidth || window.innerWidth;
+      const fast = Math.abs(sw.dx) / Math.max(1, Date.now() - sw.t) > 0.45;
+      let next = tab;
+      if(sw.dx < 0 && (sw.dx < -w*0.22 || fast)) next = tab + 1;
+      if(sw.dx > 0 && (sw.dx >  w*0.22 || fast)) next = tab - 1;
+      goTab(next);
+    }
+    sw = null;
+  }
+  track.addEventListener("touchend", endSwipe);
+  track.addEventListener("touchcancel", endSwipe);
+  // a finished swipe must not also press the button it started on
+  track.addEventListener("click", e => { if(suppressClick){ e.stopPropagation(); e.preventDefault(); } }, true);
+
+  // Size the menu buttons so every one fits on screen without scrolling.
+  function fitKeys(){
+    const pm = $("pMenu");
+    if(!mqPhone.matches || editing){
+      pm.style.removeProperty("--keyH"); pm.style.removeProperty("--cols");
+      pm.classList.remove("tight"); pm.style.overflowY = "";
+      return;
+    }
+    const nF = menu.filter(m => m.type === "food").length;
+    const nD = menu.filter(m => m.type === "drink").length;
+    const cs = getComputedStyle(pm);
+    const heads = [...pm.querySelectorAll(".group h2")].reduce((a,h) => a + h.offsetHeight + 8, 0);
+    const avail = pm.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - heads - 14 - 6;
+    const GAP = 10, MAX = 150, MIN = 64;
+    let pick = null;
+    for(const cols of [3, 4]){
+      const rows = Math.max(1, Math.ceil(nF/cols)) + Math.max(1, Math.ceil(nD/cols));
+      const h = (avail - GAP * (rows - 2)) / rows;
+      if(h >= 84 || cols === 4){ pick = {cols, h}; break; }
+    }
+    const h = Math.max(MIN, Math.min(MAX, Math.floor(pick.h)));
+    pm.style.setProperty("--cols", pick.cols);
+    pm.style.setProperty("--keyH", h + "px");
+    pm.classList.toggle("tight", h < 92);
+    // if even 4 columns at minimum size can't fit, allow scrolling as a last resort
+    pm.style.overflowY = pick.h < MIN ? "auto" : "";
+  }
+  window.addEventListener("resize", () => { fitKeys(); goTab(tab, true); });
+  mqPhone.addEventListener && mqPhone.addEventListener("change", () => { fitKeys(); goTab(tab, true); });
+
+  // More section on computers: collapsed by default
+  $("moreToggle").addEventListener("click", () => {
+    const open = !$("pMore").classList.contains("open");
+    $("pMore").classList.toggle("open", open);
+    $("moreToggle").setAttribute("aria-expanded", String(open));
+  });
+
+  /* ---------- block zoom (iOS ignores user-scalable=no) ---------- */
+  ["gesturestart","gesturechange","gestureend"].forEach(t =>
+    document.addEventListener(t, e => e.preventDefault(), {passive:false}));
+  document.addEventListener("touchmove", e => { if(e.touches.length > 1) e.preventDefault(); }, {passive:false});
+  document.addEventListener("dblclick", e => e.preventDefault(), {passive:false});
+
+  clearForm();
+  applyLang();
+  goTab(0, true);
+  requestAnimationFrame(fitKeys);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitKeys);
+})();
+</script>
+</body>
+</html>
