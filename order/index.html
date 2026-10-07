@@ -270,16 +270,26 @@ input[type=text],input[type=number],select{
 .xmsg{min-height:1.3em;margin:8px 0 0;font-size:.9rem;color:var(--muted)}
 
 /* ---------- payment sheet ---------- */
-.modal{position:fixed;inset:0;z-index:10;background:rgba(10,20,14,.55);display:flex;align-items:flex-end;justify-content:center}
+/* Phones and tablets: the sheet fills the whole visible screen, top to bottom. */
+.modal{
+  position:fixed;inset:0;z-index:10;background:rgba(10,20,14,.55);
+  display:flex;align-items:stretch;justify-content:center;
+}
 .modal[hidden]{display:none}
-@media (min-width:640px){.modal{align-items:center;padding:24px}}
 .sheet{
-  width:100%;max-width:520px;max-height:100%;overflow-y:auto;overscroll-behavior:contain;
-  background:var(--bg);color:var(--ink);border-radius:18px 18px 0 0;
+  width:100%;max-width:560px;height:100%;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  background:var(--bg);color:var(--ink);border-radius:0;
   padding:18px 18px 0;padding-top:calc(18px + env(safe-area-inset-top,0px));
   display:flex;flex-direction:column;
 }
-@media (min-width:640px){.sheet{border-radius:18px;padding-top:18px;max-height:calc(100vh - 48px)}}
+/* never let the content blocks get squeezed; the sheet scrolls instead */
+.sheet > *{flex-shrink:0}
+/* Computers with a mouse: a centered window that fits inside the visible screen. */
+@media (min-width:900px) and (pointer:fine){
+  .modal{align-items:center;padding:24px}
+  .sheet{height:auto;max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);border-radius:18px;padding-top:18px}
+}
 .mhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .mhead h2{margin:0;font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
 .mclose{width:36px;height:36px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:1.2rem;line-height:1;cursor:pointer}
@@ -298,7 +308,7 @@ input[type=text],input[type=number],select{
 .chip::after{content:" −";font-family:var(--sans)}
 .sheet h3{font-size:.95rem;font-weight:700;color:var(--muted);margin:16px 0 8px}
 .notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.coins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;justify-items:center}
+.coins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;justify-items:center;margin-bottom:18px}
 .money{position:relative;cursor:pointer;border:0;font-family:var(--sans);font-weight:800;user-select:none;-webkit-user-select:none;transition:transform .06s ease}
 .money:active{transform:scale(.94)}
 .note{height:56px;border-radius:8px;font-size:1.1rem;color:#fff;box-shadow:inset 0 0 0 3px rgba(255,255,255,.28)}
@@ -313,13 +323,31 @@ input[type=text],input[type=number],select{
 .c10{width:54px;height:54px}.c20{width:58px;height:58px}
 .mcount{position:absolute;top:-7px;right:-7px;min-width:26px;height:26px;padding:0 6px;display:grid;place-items:center;border-radius:999px;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:.8rem;font-weight:600;border:2px solid var(--bg)}
 .mfoot{
-  position:sticky;bottom:0;margin:18px -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
+  position:sticky;bottom:0;margin:auto -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
   background:var(--bg);border-top:1.5px solid color-mix(in srgb, var(--muted) 40%, transparent);
   display:flex;flex-wrap:wrap;gap:8px;align-items:center;
 }
 .mfoot .solid{flex:1 1 180px;padding:13px 16px;font-size:1.02rem}
 .mfoot .solid:disabled{opacity:.4;cursor:default}
 .hgiven{font-size:.8rem;color:var(--muted);margin-top:2px}
+/* shorter phones: tighten the sheet so all coins fit without scrolling */
+@media (max-height:760px) and (max-width:899px){
+  .sheet{padding-top:calc(12px + env(safe-area-inset-top,0px))}
+  .mclose{width:32px;height:32px}
+  .paysum{margin-top:10px}
+  .paysum div{padding:8px 12px}
+  .paysum strong{font-size:1.25rem}
+  .paystatus{margin-top:8px;padding:8px 12px}
+  .sheet h3{margin:10px 0 6px}
+  .note{height:46px}
+  .coins{gap:8px;margin-bottom:12px}
+  .coin{transform:scale(.88)}
+  .coin:active{transform:scale(.8)}
+  .coins{row-gap:2px}
+  .mfoot{padding-top:10px}
+  .mfoot .ghost{padding:6px 14px}
+  .mfoot .solid{padding:11px 16px}
+}
 @media (prefers-reduced-motion: reduce){.money{transition:none}}
 
 /* ---------- toast ---------- */
