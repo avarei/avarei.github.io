@@ -83,7 +83,22 @@ main{
 .leftcol{display:contents}
 .menu-sec{order:1;min-width:0}
 .receipt-wrap{order:2}
-.stats{order:3;min-width:0}
+.more{order:3;min-width:0}
+.more > summary{
+  list-style:none;cursor:pointer;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;
+  padding:14px 48px 14px 16px;border:2px solid var(--ink);border-radius:14px;position:relative;
+}
+.more > summary::-webkit-details-marker{display:none}
+.more > summary::after{
+  content:"";position:absolute;right:20px;top:50%;width:10px;height:10px;
+  border-right:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);
+  transform:translateY(-70%) rotate(45deg);transition:transform .15s ease;
+}
+.more[open] > summary::after{transform:translateY(-30%) rotate(-135deg)}
+.more-title{font-size:1.2rem;font-weight:800}
+.more-sub{color:var(--muted);font-size:.92rem}
+.more-body{display:flex;flex-direction:column;gap:36px;padding-top:24px}
+.stats{min-width:0}
 @media (min-width:860px){
   main{grid-template-columns:minmax(0,1fr) 340px;align-items:start;padding-bottom:40px}
   .leftcol{display:flex;flex-direction:column;gap:40px;min-width:0}
@@ -339,8 +354,16 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
   display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
 footer p{margin:0}
 .langs{display:flex;gap:6px}
-.lang{background:transparent;border:1.5px solid var(--muted);color:var(--muted);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.85rem;cursor:pointer}
-.lang[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.langs{gap:8px}
+.langrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.langrow h2{font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-.01em}
+.lang{
+  width:46px;height:46px;display:grid;place-items:center;padding:0;cursor:pointer;
+  background:transparent;border:2px solid transparent;border-radius:999px;
+  font-size:1.7rem;line-height:1;opacity:.45;filter:grayscale(.6);
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
+.lang[aria-pressed="true"]{opacity:1;filter:none;border-color:var(--ink)}
 @media (max-width:859px){footer{padding-bottom:110px}}
 @media (prefers-reduced-motion: reduce){
   .key,.count.bump{transition:none;animation:none}
@@ -384,31 +407,53 @@ footer p{margin:0}
         <button type="button" class="ghost" id="fCancel" data-t="cancelEdit" hidden>Cancel edit</button>
       </div>
       <p class="hint" data-t="hint">Tap a button above to edit it, or × to remove it.</p>
-      <div class="row" style="margin-top:18px">
-        <label><span data-t="currency">Currency symbol</span><input type="text" id="fCur" maxlength="4"></label>
-      </div>
       <div class="actions">
         <button type="button" class="ghost" id="restore" data-t="restore">Restore default menu</button>
       </div>
     </form>
   </section>
 
-  <section class="stats" id="stats" data-t-aria="stats" aria-label="Evaluation">
-    <div class="hhead">
-      <h2 data-t="stats">Evaluation</h2>
+  <details class="more" id="more">
+    <summary>
+      <span class="more-title" data-t="more">More</span>
+      <span class="more-sub" data-t="moreSub">History and evaluation</span>
+    </summary>
+    <div class="more-body">
+      <section class="history" data-t-aria="history" aria-label="History">
+        <div class="hhead">
+          <h2 data-t="history">History</h2>
+          <button class="small-ghost" id="clearHistory" data-t="clearHistory">Clear history</button>
+        </div>
+        <p class="hsum" id="hsum"></p>
+        <ol class="hlist" id="hlist"></ol>
+        <button class="small-ghost hmore" id="hmore" hidden></button>
+      </section>
+
+      <section class="stats" id="stats" data-t-aria="stats" aria-label="Evaluation">
+      <div class="hhead">
+        <h2 data-t="stats">Evaluation</h2>
+      </div>
+      <div class="seg" role="group" id="periods">
+        <button data-period="today" data-t="pToday">Today</button>
+        <button data-period="week" data-t="pWeek">7 days</button>
+        <button data-period="all" data-t="pAll">All time</button>
+      </div>
+      <div id="statsBody"></div>
+      <div class="actions">
+        <button class="solid" id="exportJson" data-t="exportJson">Export as JSON</button>
+        <button class="ghost" id="copyJson" data-t="copyJson">Copy JSON</button>
+      </div>
+      <p class="xmsg" id="xmsg" role="status"></p>
+    </section>
+      <div class="langrow">
+        <h2 id="langLbl" data-t="language">Language</h2>
+        <div class="langs" role="group" aria-labelledby="langLbl">
+          <button class="lang" data-lang="en" lang="en" aria-label="English" title="English">🇬🇧</button>
+          <button class="lang" data-lang="de" lang="de" aria-label="Deutsch" title="Deutsch">🇩🇪</button>
+        </div>
+      </div>
     </div>
-    <div class="seg" role="group" id="periods">
-      <button data-period="today" data-t="pToday">Today</button>
-      <button data-period="week" data-t="pWeek">7 days</button>
-      <button data-period="all" data-t="pAll">All time</button>
-    </div>
-    <div id="statsBody"></div>
-    <div class="actions">
-      <button class="solid" id="exportJson" data-t="exportJson">Export as JSON</button>
-      <button class="ghost" id="copyJson" data-t="copyJson">Copy JSON</button>
-    </div>
-    <p class="xmsg" id="xmsg" role="status"></p>
-  </section>
+  </details>
   </div>
 
   <aside class="receipt-wrap" id="order" data-t-aria="order" aria-label="Order">
@@ -423,25 +468,11 @@ footer p{margin:0}
         <button class="paid" id="paid" data-t="pay">Pay</button>
       </div>
     </div>
-
-    <section class="history" data-t-aria="history" aria-label="History">
-      <div class="hhead">
-        <h2 data-t="history">History</h2>
-        <button class="small-ghost" id="clearHistory" data-t="clearHistory">Clear history</button>
-      </div>
-      <p class="hsum" id="hsum"></p>
-      <ol class="hlist" id="hlist"></ol>
-      <button class="small-ghost hmore" id="hmore" hidden></button>
-    </section>
   </aside>
 </main>
 
 <footer>
   <p data-t="saved">Menu and order are saved on this device.</p>
-  <div class="langs" role="group" aria-label="Language / Sprache">
-    <button class="lang" data-lang="en" lang="en">English</button>
-    <button class="lang" data-lang="de" lang="de">Deutsch</button>
-  </div>
 </footer>
 
 <div class="bar">
@@ -483,7 +514,6 @@ footer p{margin:0}
 (function(){
   const KEY_MENU = "orderTally.menu.v1";
   const KEY_ORDER = "orderTally.order.v1";
-  const KEY_CUR = "orderTally.currency.v1";
   const KEY_LANG = "orderTally.lang.v1";
   const KEY_HIST = "orderTally.history.v1";
   const HIST_MAX = 1000;
@@ -501,7 +531,7 @@ footer p{margin:0}
       optFood:"Food", optDrink:"Drink",
       add:"Add button", saveChanges:"Save changes", cancelEdit:"Cancel edit",
       hint:"Tap a button above to edit it, or × to remove it.",
-      currency:"Currency symbol", restore:"Restore default menu",
+      restore:"Restore default menu",
       order:"Order", total:"Total",
       nothing:"Nothing ordered yet.<br>Tap a button to add it.",
       each:p=>`${p} each`, items:n=>n===1?"1 item":`${n} items`,
@@ -522,6 +552,7 @@ footer p{margin:0}
       confirmDelEntry:"Remove this order from the history?",
       confirmClear:"Clear the whole history? This can’t be undone.",
       ariaDelEntry:"Remove from history",
+      more:"More", moreSub:"History, evaluation and language", language:"Language",
       stats:"Evaluation", pToday:"Today", pWeek:"7 days", pAll:"All time",
       kSales:"Total sales", kOrders:"Orders", kAvg:"Average order", kItems:"Items sold",
       foodDrinks:"Food and drinks", itemsHead:"Sold per item", byHour:"Sales by hour",
@@ -549,7 +580,7 @@ footer p{margin:0}
       optFood:"Speise", optDrink:"Getränk",
       add:"Button hinzufügen", saveChanges:"Änderungen speichern", cancelEdit:"Abbrechen",
       hint:"Tippe oben auf einen Button, um ihn zu bearbeiten, oder auf ×, um ihn zu entfernen.",
-      currency:"Währungssymbol", restore:"Standardmenü wiederherstellen",
+      restore:"Standardmenü wiederherstellen",
       order:"Bestellung", total:"Summe",
       nothing:"Noch nichts bestellt.<br>Tippe auf einen Button, um ihn hinzuzufügen.",
       each:p=>`je ${p}`, items:n=>n===1?"1 Artikel":`${n} Artikel`,
@@ -570,6 +601,7 @@ footer p{margin:0}
       confirmDelEntry:"Diese Bestellung aus dem Verlauf entfernen?",
       confirmClear:"Gesamten Verlauf löschen? Das kann nicht rückgängig gemacht werden.",
       ariaDelEntry:"Aus dem Verlauf entfernen",
+      more:"Mehr", moreSub:"Verlauf, Auswertung und Sprache", language:"Sprache",
       stats:"Auswertung", pToday:"Heute", pWeek:"7 Tage", pAll:"Gesamt",
       kSales:"Umsatz", kOrders:"Bestellungen", kAvg:"Ø pro Bestellung", kItems:"Verkaufte Artikel",
       foodDrinks:"Speisen und Getränke", itemsHead:"Verkauft pro Artikel", byHour:"Umsatz nach Uhrzeit",
@@ -617,7 +649,8 @@ footer p{margin:0}
   });
   let order = load(KEY_ORDER, {});
   if(!order || typeof order !== "object") order = {};
-  let currency = load(KEY_CUR, "€");
+  const currency = "€";
+  try{ localStorage.removeItem("orderTally.currency.v1"); }catch(e){}
   let history = load(KEY_HIST, []);
   if(!Array.isArray(history)) history = [];
   let showAllHistory = false;
@@ -1190,7 +1223,6 @@ footer p{margin:0}
   function clearForm(){
     editId = null;
     $("editor").reset();
-    $("fCur").value = currency;
     $("fCancel").hidden = true;
     $("fErr").textContent = "";
     refreshEditorText();
@@ -1233,12 +1265,6 @@ footer p{margin:0}
     }
     save(KEY_MENU, menu);
     clearForm();
-    render();
-  });
-
-  $("fCur").addEventListener("input", () => {
-    currency = $("fCur").value;
-    save(KEY_CUR, currency);
     render();
   });
 
