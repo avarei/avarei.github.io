@@ -25,7 +25,6 @@
   --drink:#7fb3d8;
   --drink-ink:#0d2233;
   --drink-edge:#5687ab;
-  --alc:#7a2e4f;
   --paper:#fffdf6;
   --paper-ink:#1d1d1a;
   --paper-rule:#c9c4b4;
@@ -43,7 +42,7 @@
     --bg:#121a15; --ink:#e4ebe5; --muted:#93a398; --bar:#1b3325; --bar-ink:#e4ebe5;
     --food:#d9a933; --food-ink:#221a03; --food-edge:#9c7a1d;
     --drink:#5f97bf; --drink-ink:#061522; --drink-edge:#3d6a8b;
-    --alc:#c9719a; --paper:#efeadb; --paper-ink:#1d1d1a; --paper-rule:#b2ac99;
+    --paper:#efeadb; --paper-ink:#1d1d1a; --paper-rule:#b2ac99;
     --field:#1b241e; --danger:#f2766b; --focus:#7db4ff;
   }
 }
@@ -51,7 +50,7 @@
   --bg:#121a15; --ink:#e4ebe5; --muted:#93a398; --bar:#1b3325; --bar-ink:#e4ebe5;
   --food:#d9a933; --food-ink:#221a03; --food-edge:#9c7a1d;
   --drink:#5f97bf; --drink-ink:#061522; --drink-edge:#3d6a8b;
-  --alc:#c9719a; --paper:#efeadb; --paper-ink:#1d1d1a; --paper-rule:#b2ac99;
+  --paper:#efeadb; --paper-ink:#1d1d1a; --paper-rule:#b2ac99;
   --field:#1b241e; --danger:#f2766b; --focus:#7db4ff;
 }
 *,*::before,*::after{box-sizing:inherit}
@@ -110,14 +109,9 @@ main{
   .key .emoji{font-size:1.45rem}
   .key .name{font-size:.92rem;margin-top:6px;letter-spacing:-.01em}
   .key .price{font-size:.85rem}
-  .key .alc{margin-left:4px;padding:1px 5px;font-size:.66rem}
   .count{min-width:28px;height:28px;font-size:.85rem;top:-7px;right:-6px}
 }
 .key .price{font-family:var(--mono);font-size:.95rem;font-weight:600;opacity:.85}
-.key .alc{
-  display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;
-  background:var(--alc);color:#fff;font-family:var(--sans);font-size:.72rem;font-weight:700;vertical-align:2px;
-}
 .count{
   position:absolute;top:-8px;right:-8px;min-width:32px;height:32px;padding:0 8px;
   display:grid;place-items:center;border-radius:999px;
@@ -252,7 +246,6 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
           </select>
         </label>
       </div>
-      <label class="check" id="alcWrap"><input type="checkbox" id="fAlc"> Contains alcohol</label>
       <p class="err" id="fErr" role="alert"></p>
       <div class="actions">
         <button type="submit" class="solid" id="fSave">Add button</button>
@@ -297,11 +290,11 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
   const KEY_CUR = "orderTally.currency.v1";
 
   const DEFAULT_MENU = [
-    {id:"fries",  name:"Fries",       price:350,  type:"food",  emoji:"🍟", alc:false},
-    {id:"burger", name:"Burger",      price:890,  type:"food",  emoji:"🍔", alc:false},
-    {id:"steak",  name:"Steak plate", price:1950, type:"food",  emoji:"🥩", alc:false},
-    {id:"lemon",  name:"Lemonade",    price:280,  type:"drink", emoji:"🍋", alc:false},
-    {id:"beer",   name:"Beer",        price:420,  type:"drink", emoji:"🍺", alc:true}
+    {id:"fries",  name:"Fries",       price:350,  type:"food",  emoji:"🍟"},
+    {id:"burger", name:"Burger",      price:890,  type:"food",  emoji:"🍔"},
+    {id:"steak",  name:"Steak plate", price:1950, type:"food",  emoji:"🥩"},
+    {id:"lemon",  name:"Lemonade",    price:280,  type:"drink", emoji:"🍋"},
+    {id:"beer",   name:"Beer",        price:420,  type:"drink", emoji:"🍺"}
   ];
 
   function load(key, fallback){
@@ -314,6 +307,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
 
   let menu = load(KEY_MENU, null);
   if(!Array.isArray(menu)) menu = DEFAULT_MENU.map(x=>({...x}));
+  menu.forEach(m => { delete m.alc; });
   let order = load(KEY_ORDER, {});
   if(!order || typeof order !== "object") order = {};
   let currency = load(KEY_CUR, "€");
@@ -345,7 +339,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
         return `<div class="slot">
           <button class="key ${type}" data-id="${m.id}" aria-label="${esc(m.name)}, ${money(m.price)}${c ? ", ordered " + c : ""}">
             <span class="emoji" aria-hidden="true">${esc(m.emoji || (type==="food"?"🍽️":"🥤"))}</span>
-            <span class="name">${esc(m.name)}${m.alc ? '<span class="alc">18+</span>' : ""}</span>
+            <span class="name">${esc(m.name)}</span>
             <span class="price">${money(m.price)}</span>
             ${c ? `<span class="count${bumpId===m.id?" bump":""}" aria-hidden="true">${c}</span>` : ""}
           </button>
@@ -460,8 +454,6 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     if(!editing) clearForm();
   });
 
-  function syncAlc(){ $("alcWrap").style.display = $("fType").value === "drink" ? "flex" : "none"; }
-  $("fType").addEventListener("change", syncAlc);
 
   function clearForm(){
     editId = null;
@@ -471,7 +463,6 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     $("fSave").textContent = "Add button";
     $("fCancel").hidden = true;
     $("fErr").textContent = "";
-    syncAlc();
   }
   function startEdit(id){
     const m = menu.find(x => x.id === id);
@@ -481,12 +472,10 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     $("fPrice").value = (m.price/100).toFixed(2);
     $("fEmoji").value = m.emoji || "";
     $("fType").value = m.type;
-    $("fAlc").checked = !!m.alc;
     $("editorTitle").textContent = `Edit “${m.name}”`;
     $("fSave").textContent = "Save changes";
     $("fCancel").hidden = false;
     $("fErr").textContent = "";
-    syncAlc();
     $("editor").scrollIntoView({behavior:"smooth", block:"center"});
     $("fName").focus({preventScroll:true});
   }
@@ -502,8 +491,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     const type = $("fType").value;
     const item = {
       name, price, type,
-      emoji: $("fEmoji").value.trim(),
-      alc: type === "drink" && $("fAlc").checked
+      emoji: $("fEmoji").value.trim()
     };
     if(editId){
       const i = menu.findIndex(x => x.id === editId);
