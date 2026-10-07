@@ -72,16 +72,21 @@ header{
 h1{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:0;line-height:1}
 .ghost{
   background:transparent;border:2px solid currentColor;border-radius:999px;
-  padding:7px 16px;font-weight:700;cursor:pointer;color:var(--ink);
+  padding:7px 16px;font-weight:700;cursor:pointer;color:var(--ink);white-space:nowrap;
 }
 .ghost[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 
 main{
-  max-width:1120px;margin:0 auto;padding:6px clamp(16px,4vw,32px) 120px;
+  max-width:1120px;margin:0 auto;padding:6px clamp(16px,4vw,32px) 28px;
   display:grid;grid-template-columns:1fr;gap:28px;
 }
+.leftcol{display:contents}
+.menu-sec{order:1;min-width:0}
+.receipt-wrap{order:2}
+.stats{order:3;min-width:0}
 @media (min-width:860px){
   main{grid-template-columns:minmax(0,1fr) 340px;align-items:start;padding-bottom:40px}
+  .leftcol{display:flex;flex-direction:column;gap:40px;min-width:0}
 }
 
 /* ---------- keys ---------- */
@@ -148,12 +153,13 @@ input[type=text],input[type=number],select{
   border:0;border-radius:999px;padding:10px 18px;font-weight:700;cursor:pointer;
   background:var(--bar);color:var(--bar-ink);
 }
+.solid:disabled,.ghost:disabled{opacity:.4;cursor:default}
 .err{color:var(--danger);font-weight:600;margin:10px 0 0;min-height:1.2em;font-size:.92rem}
 .hint{color:var(--muted);font-size:.9rem;margin:8px 0 0}
 
 /* ---------- receipt ---------- */
 .receipt-wrap{position:relative}
-@media (min-width:860px){.receipt-wrap{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}}
+.receipt-wrap{display:flex;flex-direction:column;gap:28px;min-width:0}
 .receipt{
   background:var(--paper);color:var(--paper-ink);font-family:var(--mono);
   padding:22px 20px 26px;position:relative;
@@ -187,13 +193,79 @@ input[type=text],input[type=number],select{
 .total span:first-child{font-family:var(--sans);font-weight:700;font-size:1.05rem}
 .total strong{font-size:1.8rem;font-weight:600;letter-spacing:-.02em}
 .itemsum{font-size:.82rem;color:#6d6857;text-align:right;margin-top:2px}
+.pay-row{display:flex;align-items:center;gap:12px;margin-top:16px}
+.paid{
+  flex:1;padding:13px 16px;border-radius:10px;border:0;cursor:pointer;
+  background:var(--bar);color:var(--bar-ink);font-family:var(--sans);font-weight:800;font-size:1.05rem;
+}
+.paid:disabled{opacity:.4;cursor:default}
 .reset{
-  width:100%;margin-top:16px;padding:12px;border-radius:10px;cursor:pointer;
-  border:2px solid var(--danger);background:transparent;color:var(--danger);
-  font-family:var(--sans);font-weight:800;font-size:1rem;
+  padding:6px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;
+  border:1.5px solid var(--danger);background:transparent;color:var(--danger);
+  font-family:var(--sans);font-weight:700;font-size:.82rem;
 }
 .reset.armed{background:var(--danger);color:#fff}
 .reset:disabled{opacity:.4;cursor:default}
+
+/* ---------- history ---------- */
+.history h2{font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-.01em}
+.hhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hsum{margin:4px 0 12px;color:var(--muted);font-size:.92rem}
+.hlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.hentry{border:1.5px solid var(--muted);border-radius:10px;padding:10px 12px}
+.htop{display:flex;align-items:center;gap:10px}
+.htime{flex:1;font-weight:700;font-size:.92rem}
+.htotal{font-family:var(--mono);font-weight:600}
+.hitems{margin-top:3px;font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+.hdel{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--muted);background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;flex:none}
+.hempty{color:var(--muted);font-size:.92rem;margin:4px 0 0}
+.small-ghost{background:transparent;border:1.5px solid var(--muted);color:var(--muted);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.82rem;cursor:pointer}
+.hmore{margin-top:10px}
+
+/* ---------- evaluation ---------- */
+.stats h2{font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-.01em}
+.stats h3{font-size:1rem;font-weight:700;margin:22px 0 8px;color:var(--muted)}
+.seg{display:inline-flex;margin:10px 0 16px;border:2px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink);padding:6px 14px;font-weight:700;font-size:.9rem;cursor:pointer}
+.seg button + button{border-left:2px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:12px 14px}
+.kpi b{display:block;font-family:var(--mono);font-size:1.35rem;font-weight:600;letter-spacing:-.02em;line-height:1.2;overflow-wrap:anywhere}
+.kpi span{font-size:.85rem;color:#6d6857}
+.splitbar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--paper)}
+.splitbar i{display:block;height:100%}
+.splitbar .f{background:var(--food)} .splitbar .d{background:var(--drink)}
+.splitlegend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:.9rem}
+.splitlegend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:0}
+.splitlegend .f::before{background:var(--food)} .splitlegend .d::before{background:var(--drink)}
+.tablewrap{overflow-x:auto}
+.itable{width:100%;border-collapse:collapse;font-size:.92rem}
+.itable th{text-align:left;font-weight:700;color:var(--muted);font-size:.82rem;padding:0 8px 6px 0}
+.itable th.num,.itable td.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.itable td{padding:8px 8px 8px 0;border-top:1px solid color-mix(in srgb, var(--muted) 35%, transparent);vertical-align:middle}
+.itable td.iname{font-weight:600;min-width:7em}
+.ibar{height:8px;border-radius:999px;background:var(--food);margin-top:5px}
+.ibar.d{background:var(--drink)}
+.hours{display:flex;align-items:flex-end;gap:4px;height:110px;padding-top:4px}
+.hcol{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.hcol i{display:block;width:100%;max-width:28px;border-radius:5px 5px 2px 2px;background:var(--bar);min-height:2px}
+.hcol small{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.sempty{color:var(--muted);font-size:.95rem;margin:4px 0}
+.xmsg{min-height:1.3em;margin:8px 0 0;font-size:.9rem;color:var(--muted)}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);z-index:6;
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  width:min(92vw,420px);display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:12px;background:var(--ink);color:var(--bg);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);font-weight:600;font-size:.95rem;
+}
+.toast[hidden]{display:none}
+.toast span{flex:1}
+.toast button{background:transparent;border:1.5px solid currentColor;color:inherit;border-radius:8px;padding:6px 12px;font-weight:800;cursor:pointer}
+@media (min-width:860px){.toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}}
 
 /* ---------- mobile bottom bar ---------- */
 .bar{
@@ -205,11 +277,17 @@ input[type=text],input[type=number],select{
 .bar .btotal{flex:1;display:flex;flex-direction:column;line-height:1.15;background:none;border:0;text-align:left;cursor:pointer;padding:0;color:inherit}
 .bar .btotal small{opacity:.75;font-size:.82rem}
 .bar .btotal strong{font-family:var(--mono);font-size:1.45rem;font-weight:600}
-.bar .reset{width:auto;margin:0;padding:10px 18px;border-color:#f3a59e;color:#f3a59e}
+.bar .reset{padding:6px 10px;border-color:#f3a59e;color:#f3a59e}
+.bar .paid{flex:none;padding:12px 18px;background:var(--food);color:var(--food-ink)}
 .bar .reset.armed{background:#f3a59e;color:var(--bar)}
 @media (min-width:860px){.bar{display:none}}
 
-footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:var(--muted);font-size:.85rem}
+footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:var(--muted);font-size:.85rem;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
+footer p{margin:0}
+.langs{display:flex;gap:6px}
+.lang{background:transparent;border:1.5px solid var(--muted);color:var(--muted);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.85rem;cursor:pointer}
+.lang[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 @media (max-width:859px){footer{padding-bottom:110px}}
 @media (prefers-reduced-motion: reduce){
   .key,.count.bump{transition:none;animation:none}
@@ -218,84 +296,216 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
 </head>
 <body>
 <header>
-  <h1>Order Tally</h1>
+  <h1 data-t="appName">Order Tally</h1>
   <button class="ghost" id="editToggle" aria-pressed="false">Edit menu</button>
 </header>
 
 <main id="app">
-  <section aria-label="Menu">
+  <div class="leftcol">
+  <section class="menu-sec" data-t-aria="menu" aria-label="Menu">
     <div class="group">
-      <h2>Food</h2>
+      <h2 data-t="food">Food</h2>
       <div class="keys" id="foodKeys"></div>
     </div>
     <div class="group">
-      <h2>Drinks</h2>
+      <h2 data-t="drinks">Drinks</h2>
       <div class="keys" id="drinkKeys"></div>
     </div>
 
     <form class="editor" id="editor" autocomplete="off">
       <h2 id="editorTitle">Add a button</h2>
       <div class="row">
-        <label>Name<input type="text" id="fName" maxlength="40" placeholder="e.g. Hot dog"></label>
-        <label>Price<input type="text" id="fPrice" inputmode="decimal" placeholder="4.50"></label>
-        <label>Icon<input type="text" id="fEmoji" maxlength="4" placeholder="🌭"></label>
-        <label>Type
+        <label><span data-t="name">Name</span><input type="text" id="fName" maxlength="40" data-t-ph="namePh"></label>
+        <label><span data-t="price">Price</span><input type="text" id="fPrice" inputmode="decimal" data-t-ph="pricePh"></label>
+        <label><span data-t="icon">Icon</span><input type="text" id="fEmoji" maxlength="4" placeholder="🌭"></label>
+        <label><span data-t="type">Type</span>
           <select id="fType">
-            <option value="food">Food</option>
-            <option value="drink">Drink</option>
+            <option value="food" data-t="optFood">Food</option>
+            <option value="drink" data-t="optDrink">Drink</option>
           </select>
         </label>
       </div>
       <p class="err" id="fErr" role="alert"></p>
       <div class="actions">
         <button type="submit" class="solid" id="fSave">Add button</button>
-        <button type="button" class="ghost" id="fCancel" hidden>Cancel edit</button>
+        <button type="button" class="ghost" id="fCancel" data-t="cancelEdit" hidden>Cancel edit</button>
       </div>
-      <p class="hint">Tap a button above to edit it, or × to remove it.</p>
+      <p class="hint" data-t="hint">Tap a button above to edit it, or × to remove it.</p>
       <div class="row" style="margin-top:18px">
-        <label>Currency symbol<input type="text" id="fCur" maxlength="4"></label>
+        <label><span data-t="currency">Currency symbol</span><input type="text" id="fCur" maxlength="4"></label>
       </div>
       <div class="actions">
-        <button type="button" class="ghost" id="restore">Restore default menu</button>
+        <button type="button" class="ghost" id="restore" data-t="restore">Restore default menu</button>
       </div>
     </form>
   </section>
 
-  <aside class="receipt-wrap" id="order" aria-label="Order">
+  <section class="stats" id="stats" data-t-aria="stats" aria-label="Evaluation">
+    <div class="hhead">
+      <h2 data-t="stats">Evaluation</h2>
+    </div>
+    <div class="seg" role="group" id="periods">
+      <button data-period="today" data-t="pToday">Today</button>
+      <button data-period="week" data-t="pWeek">7 days</button>
+      <button data-period="all" data-t="pAll">All time</button>
+    </div>
+    <div id="statsBody"></div>
+    <div class="actions">
+      <button class="solid" id="exportJson" data-t="exportJson">Export as JSON</button>
+      <button class="ghost" id="copyJson" data-t="copyJson">Copy JSON</button>
+    </div>
+    <p class="xmsg" id="xmsg" role="status"></p>
+  </section>
+  </div>
+
+  <aside class="receipt-wrap" id="order" data-t-aria="order" aria-label="Order">
     <div class="receipt">
-      <h2>Order</h2>
+      <h2 data-t="order">Order</h2>
       <p class="sub" id="stamp"></p>
       <ul class="lines" id="lines"></ul>
-      <div class="total"><span>Total</span><strong id="total">0.00</strong></div>
-      <div class="itemsum" id="itemsum">0 items</div>
-      <button class="reset" id="reset">Reset order</button>
+      <div class="total"><span data-t="total">Total</span><strong id="total"></strong></div>
+      <div class="itemsum" id="itemsum"></div>
+      <div class="pay-row">
+        <button class="reset" id="reset">Reset</button>
+        <button class="paid" id="paid" data-t="paid">Paid</button>
+      </div>
     </div>
+
+    <section class="history" data-t-aria="history" aria-label="History">
+      <div class="hhead">
+        <h2 data-t="history">History</h2>
+        <button class="small-ghost" id="clearHistory" data-t="clearHistory">Clear history</button>
+      </div>
+      <p class="hsum" id="hsum"></p>
+      <ol class="hlist" id="hlist"></ol>
+      <button class="small-ghost hmore" id="hmore" hidden></button>
+    </section>
   </aside>
 </main>
 
-<footer>Menu and order are saved on this device.</footer>
+<footer>
+  <p data-t="saved">Menu and order are saved on this device.</p>
+  <div class="langs" role="group" aria-label="Language / Sprache">
+    <button class="lang" data-lang="en" lang="en">English</button>
+    <button class="lang" data-lang="de" lang="de">Deutsch</button>
+  </div>
+</footer>
 
 <div class="bar">
-  <button class="btotal" id="jump" aria-label="Show order">
-    <small id="barCount">0 items</small>
-    <strong id="barTotal">0.00</strong>
+  <button class="btotal" id="jump" data-t-aria="showOrder" aria-label="Show order">
+    <small id="barCount"></small>
+    <strong id="barTotal"></strong>
   </button>
   <button class="reset" id="reset2">Reset</button>
+  <button class="paid" id="paid2" data-t="paid">Paid</button>
 </div>
+
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="undo">Undo</button></div>
 
 <script>
 (function(){
   const KEY_MENU = "orderTally.menu.v1";
   const KEY_ORDER = "orderTally.order.v1";
   const KEY_CUR = "orderTally.currency.v1";
+  const KEY_LANG = "orderTally.lang.v1";
+  const KEY_HIST = "orderTally.history.v1";
+  const HIST_MAX = 1000;
+  const HIST_SHOWN = 10;
+
+  /* ---------- translations ---------- */
+  const STR = {
+    en: {
+      appName:"Order Tally", editMenu:"Edit menu", done:"Done", menu:"Menu",
+      food:"Food", drinks:"Drinks",
+      emptyFood:"No food yet. Use “Edit menu” to add some.",
+      emptyDrinks:"No drinks yet. Use “Edit menu” to add some.",
+      addTitle:"Add a button", editTitle:n=>`Edit “${n}”`,
+      name:"Name", namePh:"e.g. Hot dog", price:"Price", pricePh:"4.50", icon:"Icon", type:"Type",
+      optFood:"Food", optDrink:"Drink",
+      add:"Add button", saveChanges:"Save changes", cancelEdit:"Cancel edit",
+      hint:"Tap a button above to edit it, or × to remove it.",
+      currency:"Currency symbol", restore:"Restore default menu",
+      order:"Order", total:"Total",
+      nothing:"Nothing ordered yet.<br>Tap a button to add it.",
+      each:p=>`${p} each`, items:n=>n===1?"1 item":`${n} items`,
+      reset:"Reset", sure:"Sure?", paid:"Paid",
+      history:"History", clearHistory:"Clear history",
+      noHistory:"Orders you mark as paid appear here.",
+      todaySum:(sum,n)=>`Today: ${sum} from ${n===1?"1 order":n+" orders"}`,
+      noneToday:"No paid orders today yet.",
+      showAll:n=>`Show all (${n})`, showLess:"Show less",
+      toastPaid:t=>`Paid ${t}. Saved to history.`, undo:"Undo",
+      confirmDelEntry:"Remove this order from the history?",
+      confirmClear:"Clear the whole history? This can’t be undone.",
+      ariaDelEntry:"Remove from history",
+      stats:"Evaluation", pToday:"Today", pWeek:"7 days", pAll:"All time",
+      kSales:"Total sales", kOrders:"Orders", kAvg:"Average order", kItems:"Items sold",
+      foodDrinks:"Food and drinks", itemsHead:"Sold per item", byHour:"Sales by hour",
+      colItem:"Item", colQty:"Qty", colRev:"Sales",
+      foodLbl:"Food", drinkLbl:"Drinks", otherLbl:"Other",
+      noStats:"No paid orders in this period yet.",
+      exportJson:"Export as JSON", copyJson:"Copy JSON",
+      exported:"Export saved.", copied:"JSON copied to the clipboard.",
+      exportFailed:"This browser blocked the file. Use “Copy JSON” instead.",
+      exportDeclined:"Export cancelled.", copyFailed:"Copying failed. Try “Export as JSON”.",
+      saved:"Menu, order and history are saved on this device.", showOrder:"Show order",
+      errName:"Enter a name for the button.", errPrice:"Enter a price like 4.50.",
+      confirmDel:n=>`Remove “${n}” from the menu?`,
+      confirmRestore:"Replace your menu with the default five buttons? The current order will be cleared.",
+      ariaKey:(n,p,c)=>`${n}, ${p}${c?`, ordered ${c}`:""}`,
+      ariaDel:n=>`Remove ${n}`, ariaMinus:n=>`Remove one ${n}`, ariaPlus:n=>`Add one ${n}`
+    },
+    de: {
+      appName:"Strichliste", editMenu:"Bearbeiten", done:"Fertig", menu:"Menü",
+      food:"Speisen", drinks:"Getränke",
+      emptyFood:"Noch keine Speisen. Über „Bearbeiten“ hinzufügen.",
+      emptyDrinks:"Noch keine Getränke. Über „Bearbeiten“ hinzufügen.",
+      addTitle:"Button hinzufügen", editTitle:n=>`„${n}“ bearbeiten`,
+      name:"Name", namePh:"z. B. Hotdog", price:"Preis", pricePh:"4,50", icon:"Symbol", type:"Art",
+      optFood:"Speise", optDrink:"Getränk",
+      add:"Button hinzufügen", saveChanges:"Änderungen speichern", cancelEdit:"Abbrechen",
+      hint:"Tippe oben auf einen Button, um ihn zu bearbeiten, oder auf ×, um ihn zu entfernen.",
+      currency:"Währungssymbol", restore:"Standardmenü wiederherstellen",
+      order:"Bestellung", total:"Summe",
+      nothing:"Noch nichts bestellt.<br>Tippe auf einen Button, um ihn hinzuzufügen.",
+      each:p=>`je ${p}`, items:n=>n===1?"1 Artikel":`${n} Artikel`,
+      reset:"Leeren", sure:"Sicher?", paid:"Bezahlt",
+      history:"Verlauf", clearHistory:"Verlauf löschen",
+      noHistory:"Als bezahlt markierte Bestellungen erscheinen hier.",
+      todaySum:(sum,n)=>`Heute: ${sum} aus ${n===1?"1 Bestellung":n+" Bestellungen"}`,
+      noneToday:"Heute noch keine bezahlten Bestellungen.",
+      showAll:n=>`Alle anzeigen (${n})`, showLess:"Weniger anzeigen",
+      toastPaid:t=>`${t} bezahlt. Im Verlauf gespeichert.`, undo:"Rückgängig",
+      confirmDelEntry:"Diese Bestellung aus dem Verlauf entfernen?",
+      confirmClear:"Gesamten Verlauf löschen? Das kann nicht rückgängig gemacht werden.",
+      ariaDelEntry:"Aus dem Verlauf entfernen",
+      stats:"Auswertung", pToday:"Heute", pWeek:"7 Tage", pAll:"Gesamt",
+      kSales:"Umsatz", kOrders:"Bestellungen", kAvg:"Ø pro Bestellung", kItems:"Verkaufte Artikel",
+      foodDrinks:"Speisen und Getränke", itemsHead:"Verkauft pro Artikel", byHour:"Umsatz nach Uhrzeit",
+      colItem:"Artikel", colQty:"Anz.", colRev:"Umsatz",
+      foodLbl:"Speisen", drinkLbl:"Getränke", otherLbl:"Sonstiges",
+      noStats:"In diesem Zeitraum gibt es noch keine bezahlten Bestellungen.",
+      exportJson:"Als JSON exportieren", copyJson:"JSON kopieren",
+      exported:"Export gespeichert.", copied:"JSON in die Zwischenablage kopiert.",
+      exportFailed:"Der Browser hat die Datei blockiert. Nutze stattdessen „JSON kopieren“.",
+      exportDeclined:"Export abgebrochen.", copyFailed:"Kopieren fehlgeschlagen. Versuche „Als JSON exportieren“.",
+      saved:"Menü, Bestellung und Verlauf werden auf diesem Gerät gespeichert.", showOrder:"Bestellung anzeigen",
+      errName:"Gib einen Namen für den Button ein.", errPrice:"Gib einen Preis wie 4,50 ein.",
+      confirmDel:n=>`„${n}“ aus dem Menü entfernen?`,
+      confirmRestore:"Menü durch die fünf Standard-Buttons ersetzen? Die aktuelle Bestellung wird geleert.",
+      ariaKey:(n,p,c)=>`${n}, ${p}${c?`, ${c}-mal bestellt`:""}`,
+      ariaDel:n=>`${n} entfernen`, ariaMinus:n=>`Ein ${n} weniger`, ariaPlus:n=>`Ein ${n} mehr`
+    }
+  };
 
   const DEFAULT_MENU = [
-    {id:"fries",  name:"Fries",       price:350,  type:"food",  emoji:"🍟"},
-    {id:"burger", name:"Burger",      price:890,  type:"food",  emoji:"🍔"},
-    {id:"steak",  name:"Steak plate", price:1950, type:"food",  emoji:"🥩"},
-    {id:"lemon",  name:"Lemonade",    price:280,  type:"drink", emoji:"🍋"},
-    {id:"beer",   name:"Beer",        price:420,  type:"drink", emoji:"🍺"}
+    {id:"fries",  names:{en:"Fries",       de:"Pommes"},      price:350,  type:"food",  emoji:"🍟"},
+    {id:"burger", names:{en:"Burger",      de:"Burger"},      price:890,  type:"food",  emoji:"🍔"},
+    {id:"steak",  names:{en:"Steak plate", de:"Steakteller"}, price:1950, type:"food",  emoji:"🥩"},
+    {id:"lemon",  names:{en:"Lemonade",    de:"Limonade"},    price:280,  type:"drink", emoji:"🍋"},
+    {id:"beer",   names:{en:"Beer",        de:"Bier"},        price:420,  type:"drink", emoji:"🍺"}
   ];
+  const DEFAULT_NAMES = Object.fromEntries(DEFAULT_MENU.map(d => [d.id, d.names]));
 
   function load(key, fallback){
     try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
@@ -304,26 +514,65 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
   function save(key, val){
     try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
   }
+  const clone = () => DEFAULT_MENU.map(x => ({...x, names:{...x.names}}));
 
   let menu = load(KEY_MENU, null);
-  if(!Array.isArray(menu)) menu = DEFAULT_MENU.map(x=>({...x}));
-  menu.forEach(m => { delete m.alc; });
+  if(!Array.isArray(menu)) menu = clone();
+  menu.forEach(m => {
+    delete m.alc;
+    // older saves stored default items with a fixed English name: make them translatable again
+    const dn = DEFAULT_NAMES[m.id];
+    if(dn && !m.names && m.name === dn.en){ m.names = {...dn}; delete m.name; }
+  });
   let order = load(KEY_ORDER, {});
   if(!order || typeof order !== "object") order = {};
   let currency = load(KEY_CUR, "€");
+  let history = load(KEY_HIST, []);
+  if(!Array.isArray(history)) history = [];
+  let showAllHistory = false;
+  let period = "today";
+  let lang = load(KEY_LANG, null);
+  if(lang !== "en" && lang !== "de"){
+    const nav = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
+    lang = /^de\b/i.test(nav) ? "de" : "en";
+  }
   let editing = false;
   let editId = null;
 
   const $ = id => document.getElementById(id);
   const app = $("app");
+  const T = k => STR[lang][k];
+  const nm = m => m.name || (m.names && (m.names[lang] || m.names.en)) || "";
 
-  function money(cents){
+  function decimal(cents){
     const n = (cents/100).toFixed(2);
-    return currency + n;
+    return lang === "de" ? n.replace(".", ",") : n;
+  }
+  function money(cents){
+    return lang === "de" ? `${decimal(cents)}\u00a0${currency}`.trim() : currency + decimal(cents);
   }
   function esc(s){
     return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   }
+
+  /* ---------- static text ---------- */
+  function applyLang(){
+    document.documentElement.lang = lang;
+    document.title = T("appName");
+    document.querySelectorAll("[data-t]").forEach(el => el.textContent = T(el.dataset.t));
+    document.querySelectorAll("[data-t-ph]").forEach(el => el.placeholder = T(el.dataset.tPh));
+    document.querySelectorAll("[data-t-aria]").forEach(el => el.setAttribute("aria-label", T(el.dataset.tAria)));
+    document.querySelectorAll(".lang").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+    $("editToggle").textContent = editing ? T("done") : T("editMenu");
+    disarm();
+    refreshEditorText();
+    render();
+  }
+  document.querySelectorAll(".lang").forEach(b => b.addEventListener("click", () => {
+    lang = b.dataset.lang;
+    save(KEY_LANG, lang);
+    applyLang();
+  }));
 
   /* ---------- keys ---------- */
   function renderKeys(bumpId){
@@ -331,19 +580,20 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
       const box = $(type === "food" ? "foodKeys" : "drinkKeys");
       const items = menu.filter(m => m.type === type);
       if(!items.length){
-        box.innerHTML = `<p class="empty-group">No ${type === "food" ? "food" : "drinks"} yet. Use “Edit menu” to add some.</p>`;
+        box.innerHTML = `<p class="empty-group">${esc(T(type === "food" ? "emptyFood" : "emptyDrinks"))}</p>`;
         continue;
       }
       box.innerHTML = items.map(m => {
         const c = order[m.id] || 0;
+        const n = nm(m);
         return `<div class="slot">
-          <button class="key ${type}" data-id="${m.id}" aria-label="${esc(m.name)}, ${money(m.price)}${c ? ", ordered " + c : ""}">
+          <button class="key ${type}" data-id="${m.id}" aria-label="${esc(T("ariaKey")(n, money(m.price), c))}">
             <span class="emoji" aria-hidden="true">${esc(m.emoji || (type==="food"?"🍽️":"🥤"))}</span>
-            <span class="name">${esc(m.name)}</span>
+            <span class="name">${esc(n)}</span>
             <span class="price">${money(m.price)}</span>
             ${c ? `<span class="count${bumpId===m.id?" bump":""}" aria-hidden="true">${c}</span>` : ""}
           </button>
-          <button class="del" data-del="${m.id}" aria-label="Remove ${esc(m.name)}">×</button>
+          <button class="del" data-del="${m.id}" aria-label="${esc(T("ariaDel")(n))}">×</button>
         </div>`;
       }).join("");
     }
@@ -355,34 +605,254 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     let total = 0, count = 0;
     const lines = $("lines");
     if(!ids.length){
-      lines.innerHTML = `<li class="nothing">Nothing ordered yet.<br>Tap a button to add it.</li>`;
+      lines.innerHTML = `<li class="nothing">${T("nothing")}</li>`;
     }else{
       lines.innerHTML = ids.map(id => {
         const m = menu.find(x => x.id === id);
         const q = order[id];
+        const n = nm(m);
         total += q * m.price; count += q;
         return `<li class="line">
           <span class="qty">${q}×</span>
-          <span class="lname">${esc(m.name)}</span>
+          <span class="lname">${esc(n)}</span>
           <span class="lsum">${money(q*m.price)}</span>
-          <span class="each">${money(m.price)} each</span>
+          <span class="each">${esc(T("each")(money(m.price)))}</span>
           <span class="steppers">
-            <button class="step" data-minus="${id}" aria-label="Remove one ${esc(m.name)}">−</button>
-            <button class="step" data-plus="${id}" aria-label="Add one ${esc(m.name)}">+</button>
+            <button class="step" data-minus="${id}" aria-label="${esc(T("ariaMinus")(n))}">−</button>
+            <button class="step" data-plus="${id}" aria-label="${esc(T("ariaPlus")(n))}">+</button>
           </span>
         </li>`;
       }).join("");
     }
-    const label = count === 1 ? "1 item" : count + " items";
+    const label = T("items")(count);
     $("total").textContent = money(total);
     $("itemsum").textContent = label;
     $("barTotal").textContent = money(total);
     $("barCount").textContent = label;
-    $("reset").disabled = $("reset2").disabled = count === 0;
-    $("stamp").textContent = new Date().toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
+    $("reset").disabled = $("reset2").disabled = $("paid").disabled = $("paid2").disabled = count === 0;
+    $("stamp").textContent = new Date().toLocaleString(lang === "de" ? "de-DE" : undefined, {dateStyle:"medium", timeStyle:"short"});
   }
 
-  function render(bumpId){ renderKeys(bumpId); renderOrder(); }
+  /* ---------- history ---------- */
+  const lineName = l => l.name || (l.names && (l.names[lang] || l.names.en)) || "";
+  const sameDay = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  function renderHistory(){
+    const loc = lang === "de" ? "de-DE" : undefined;
+    const now = new Date();
+    const today = history.filter(h => sameDay(new Date(h.t), now));
+    const todayTotal = today.reduce((a,h) => a + h.total, 0);
+    $("hsum").textContent = history.length ? (today.length ? T("todaySum")(money(todayTotal), today.length) : T("noneToday")) : "";
+    $("clearHistory").hidden = !history.length;
+    const list = [...history].reverse();
+    const shown = showAllHistory ? list : list.slice(0, HIST_SHOWN);
+    $("hlist").innerHTML = !history.length
+      ? `<li class="hempty">${esc(T("noHistory"))}</li>`
+      : shown.map(h => {
+          const d = new Date(h.t);
+          const when = sameDay(d, now)
+            ? d.toLocaleTimeString(loc, {timeStyle:"short"})
+            : d.toLocaleString(loc, {dateStyle:"medium", timeStyle:"short"});
+          const items = h.lines.map(l => `${l.qty}× ${lineName(l)}`).join(", ");
+          return `<li class="hentry">
+            <div class="htop">
+              <span class="htime">${esc(when)}</span>
+              <span class="htotal">${money(h.total)}</span>
+              <button class="hdel" data-hdel="${h.t}" aria-label="${esc(T("ariaDelEntry"))}">×</button>
+            </div>
+            <div class="hitems">${esc(items)}</div>
+          </li>`;
+        }).join("");
+    const more = $("hmore");
+    more.hidden = history.length <= HIST_SHOWN;
+    more.textContent = showAllHistory ? T("showLess") : T("showAll")(history.length);
+    renderStats();
+  }
+
+  /* ---------- evaluation ---------- */
+  function periodEntries(){
+    const now = new Date();
+    if(period === "today") return history.filter(h => sameDay(new Date(h.t), now));
+    if(period === "week"){
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).getTime();
+      return history.filter(h => h.t >= start);
+    }
+    return history.slice();
+  }
+  function lineType(l){
+    if(l.type) return l.type;
+    const m = menu.find(x => x.id === l.id);
+    return m ? m.type : "other";
+  }
+  function computeStats(entries){
+    const items = new Map();
+    const byType = {food:0, drink:0, other:0};
+    const hours = new Array(24).fill(0);
+    let sales = 0, qty = 0;
+    for(const h of entries){
+      sales += h.total;
+      hours[new Date(h.t).getHours()] += h.total;
+      for(const l of h.lines){
+        const type = lineType(l);
+        const key = l.id || lineName(l);
+        const it = items.get(key) || {id:key, line:l, type, qty:0, revenue:0};
+        it.line = l; // latest snapshot wins for the display name
+        it.qty += l.qty; it.revenue += l.qty * l.price;
+        items.set(key, it);
+        byType[type] = (byType[type] || 0) + l.qty * l.price;
+        qty += l.qty;
+      }
+    }
+    const list = [...items.values()].sort((a,b) => b.revenue - a.revenue || b.qty - a.qty);
+    return {orders: entries.length, sales, qty, avg: entries.length ? Math.round(sales/entries.length) : 0, list, byType, hours};
+  }
+  function renderStats(){
+    document.querySelectorAll("#periods button").forEach(b => b.setAttribute("aria-pressed", b.dataset.period === period));
+    const entries = periodEntries();
+    const st = computeStats(entries);
+    $("exportJson").disabled = $("copyJson").disabled = !entries.length;
+    if(!entries.length){
+      $("statsBody").innerHTML = `<p class="sempty">${esc(T("noStats"))}</p>`;
+      return;
+    }
+    const pct = v => st.sales ? (v / st.sales * 100) : 0;
+    const maxRev = Math.max(...st.list.map(i => i.revenue), 1);
+    const usedHours = st.hours.map((v,i) => [i,v]).filter(([,v]) => v > 0).map(([i]) => i);
+    const hFrom = Math.min(...usedHours), hTo = Math.max(...usedHours);
+    const maxHour = Math.max(...st.hours, 1);
+    let hoursHtml = "";
+    for(let h = hFrom; h <= hTo; h++){
+      const v = st.hours[h];
+      hoursHtml += `<div class="hcol" title="${h}:00 – ${money(v)}"><i style="height:${Math.max(2, v/maxHour*100)}%"></i><small>${h}</small></div>`;
+    }
+    const other = st.byType.other || 0;
+    $("statsBody").innerHTML = `
+      <div class="kpis">
+        <div class="kpi"><b>${money(st.sales)}</b><span>${esc(T("kSales"))}</span></div>
+        <div class="kpi"><b>${st.orders}</b><span>${esc(T("kOrders"))}</span></div>
+        <div class="kpi"><b>${money(st.avg)}</b><span>${esc(T("kAvg"))}</span></div>
+        <div class="kpi"><b>${st.qty}</b><span>${esc(T("kItems"))}</span></div>
+      </div>
+      <h3>${esc(T("foodDrinks"))}</h3>
+      <div class="splitbar" aria-hidden="true">
+        <i class="f" style="width:${pct(st.byType.food)}%"></i><i class="d" style="width:${pct(st.byType.drink)}%"></i>
+      </div>
+      <div class="splitlegend">
+        <span class="f">${esc(T("foodLbl"))}: ${money(st.byType.food)} (${Math.round(pct(st.byType.food))} %)</span>
+        <span class="d">${esc(T("drinkLbl"))}: ${money(st.byType.drink)} (${Math.round(pct(st.byType.drink))} %)</span>
+        ${other ? `<span>${esc(T("otherLbl"))}: ${money(other)}</span>` : ""}
+      </div>
+      <h3>${esc(T("itemsHead"))}</h3>
+      <div class="tablewrap"><table class="itable">
+        <thead><tr><th>${esc(T("colItem"))}</th><th class="num">${esc(T("colQty"))}</th><th class="num">${esc(T("colRev"))}</th></tr></thead>
+        <tbody>${st.list.map(i => `<tr>
+          <td class="iname">${esc(lineName(i.line))}<div class="ibar${i.type==="drink"?" d":""}" style="width:${i.revenue/maxRev*100}%"></div></td>
+          <td class="num">${i.qty}×</td>
+          <td class="num">${money(i.revenue)}</td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+      <h3>${esc(T("byHour"))}</h3>
+      <div class="hours">${hoursHtml}</div>`;
+  }
+  document.querySelectorAll("#periods button").forEach(b => b.addEventListener("click", () => {
+    period = b.dataset.period;
+    $("xmsg").textContent = "";
+    renderStats();
+  }));
+
+  /* ---------- JSON export ---------- */
+  const dec = c => Math.round(c) / 100;
+  function buildExport(){
+    const entries = periodEntries();
+    const st = computeStats(entries);
+    const now = new Date();
+    const data = {
+      app: "Order Tally",
+      format: 1,
+      exportedAt: now.toISOString(),
+      period,
+      language: lang,
+      currency,
+      summary: {
+        orders: st.orders,
+        itemsSold: st.qty,
+        totalSales: dec(st.sales),
+        averageOrder: dec(st.avg),
+        salesByType: {food: dec(st.byType.food), drink: dec(st.byType.drink), other: dec(st.byType.other || 0)},
+        salesByHour: Object.fromEntries(st.hours.map((v,h) => [String(h).padStart(2,"0") + ":00", dec(v)]).filter(([,v]) => v > 0))
+      },
+      items: st.list.map(i => ({id: i.id, name: lineName(i.line), type: i.type, quantity: i.qty, revenue: dec(i.revenue)})),
+      orders: entries.map(h => ({
+        paidAt: new Date(h.t).toISOString(),
+        total: dec(h.total),
+        lines: h.lines.map(l => ({id: l.id, name: lineName(l), type: lineType(l), quantity: l.qty, unitPrice: dec(l.price), subtotal: dec(l.qty * l.price)}))
+      }))
+    };
+    const d = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0") + "-" + String(now.getDate()).padStart(2,"0");
+    const base = lang === "de" ? "strichliste" : "order-tally";
+    return {json: JSON.stringify(data, null, 2), filename: `${base}-${period}-${d}.json`};
+  }
+
+  // Resolve the viewer's download capability early so the click handler can use it right away.
+  let downloads = null;
+  try{
+    if(window.claude && typeof window.claude.use === "function"){
+      window.claude.use("downloads").then(d => { downloads = d; }).catch(() => {});
+    }
+  }catch(e){}
+
+  function xmsg(t){ $("xmsg").textContent = t; }
+
+  $("exportJson").addEventListener("click", async () => {
+    const {json, filename} = buildExport();
+    if(downloads){
+      try{ await downloads.save({filename, data: json}); xmsg(T("exported")); return; }
+      catch(e){
+        const code = e && e.code;
+        if(code === "declined"){ xmsg(T("exportDeclined")); return; }
+        if(code === "rate_limited"){ return; }
+        // otherwise fall through to the browser's own options
+      }
+    }
+    try{
+      const file = new File([json], filename, {type:"application/json"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title: filename});
+        xmsg(T("exported"));
+        return;
+      }
+    }catch(e){
+      if(e && e.name === "AbortError"){ xmsg(T("exportDeclined")); return; }
+    }
+    try{
+      const url = URL.createObjectURL(new Blob([json], {type:"application/json"}));
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      xmsg(T("exported"));
+    }catch(e){
+      xmsg(T("exportFailed"));
+    }
+  });
+
+  $("copyJson").addEventListener("click", async () => {
+    const {json} = buildExport();
+    try{
+      await navigator.clipboard.writeText(json);
+      xmsg(T("copied"));
+    }catch(e){
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = json; ta.setAttribute("readonly",""); ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        xmsg(ok ? T("copied") : T("copyFailed"));
+      }catch(_){ xmsg(T("copyFailed")); }
+    }
+  });
+
+  function render(bumpId){ renderKeys(bumpId); renderOrder(); renderHistory(); }
 
   function add(id, delta){
     order[id] = Math.max(0, (order[id] || 0) + delta);
@@ -398,12 +868,21 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     if(del){
       const id = del.dataset.del;
       const m = menu.find(x => x.id === id);
-      if(m && confirm(`Remove “${m.name}” from the menu?`)){
+      if(m && confirm(T("confirmDel")(nm(m)))){
         menu = menu.filter(x => x.id !== id);
         delete order[id];
         save(KEY_MENU, menu); save(KEY_ORDER, order);
         if(editId === id) clearForm();
         render();
+      }
+      return;
+    }
+    const hdel = e.target.closest("[data-hdel]");
+    if(hdel){
+      if(confirm(T("confirmDelEntry"))){
+        history = history.filter(h => String(h.t) !== hdel.dataset.hdel);
+        save(KEY_HIST, history);
+        renderHistory();
       }
       return;
     }
@@ -421,12 +900,11 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
 
   /* ---------- reset with second-tap confirm ---------- */
   let armTimer = null;
-  function handleReset(e){
+  function handleReset(){
     const btns = [$("reset"), $("reset2")];
     if(!btns[0].classList.contains("armed")){
       btns.forEach(b => b.classList.add("armed"));
-      $("reset").textContent = "Tap again to clear";
-      $("reset2").textContent = "Sure?";
+      btns.forEach(b => b.textContent = T("sure"));
       clearTimeout(armTimer);
       armTimer = setTimeout(disarm, 3000);
       return;
@@ -437,12 +915,59 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     render();
   }
   function disarm(){
+    clearTimeout(armTimer);
     [$("reset"), $("reset2")].forEach(b => b.classList.remove("armed"));
-    $("reset").textContent = "Reset order";
-    $("reset2").textContent = "Reset";
+    $("reset").textContent = T("reset");
+    $("reset2").textContent = T("reset");
   }
   $("reset").addEventListener("click", handleReset);
   $("reset2").addEventListener("click", handleReset);
+  let toastTimer = null, lastPaid = null;
+  function handlePaid(){
+    const ids = Object.keys(order).filter(id => order[id] > 0 && menu.some(m => m.id === id));
+    if(!ids.length) return;
+    const lines = ids.map(id => {
+      const m = menu.find(x => x.id === id);
+      const l = {id, qty:order[id], price:m.price, type:m.type};
+      if(m.name) l.name = m.name; else l.names = {...m.names};
+      return l;
+    });
+    const total = lines.reduce((a,l) => a + l.qty*l.price, 0);
+    let t = Date.now();
+    if(history.length && history[history.length-1].t >= t) t = history[history.length-1].t + 1;
+    const entry = {t, lines, total};
+    lastPaid = {entry, order:{...order}};
+    history.push(entry);
+    if(history.length > HIST_MAX) history = history.slice(-HIST_MAX);
+    order = {};
+    save(KEY_HIST, history); save(KEY_ORDER, order);
+    disarm();
+    render();
+    $("toastMsg").textContent = T("toastPaid")(money(total));
+    $("undo").textContent = T("undo");
+    $("toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { $("toast").hidden = true; lastPaid = null; }, 6000);
+  }
+  $("paid").addEventListener("click", handlePaid);
+  $("paid2").addEventListener("click", handlePaid);
+  $("undo").addEventListener("click", () => {
+    if(!lastPaid) return;
+    history = history.filter(h => h.t !== lastPaid.entry.t);
+    order = lastPaid.order;
+    lastPaid = null;
+    save(KEY_HIST, history); save(KEY_ORDER, order);
+    $("toast").hidden = true;
+    render();
+  });
+  $("clearHistory").addEventListener("click", () => {
+    if(!confirm(T("confirmClear"))) return;
+    history = [];
+    save(KEY_HIST, history);
+    showAllHistory = false;
+    renderHistory();
+  });
+  $("hmore").addEventListener("click", () => { showAllHistory = !showAllHistory; renderHistory(); });
   $("jump").addEventListener("click", () => $("order").scrollIntoView({behavior:"smooth"}));
 
   /* ---------- editor ---------- */
@@ -450,32 +975,35 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     editing = !editing;
     app.classList.toggle("editing", editing);
     $("editToggle").setAttribute("aria-pressed", editing);
-    $("editToggle").textContent = editing ? "Done" : "Edit menu";
+    $("editToggle").textContent = editing ? T("done") : T("editMenu");
     if(!editing) clearForm();
   });
 
-
+  function refreshEditorText(){
+    const m = editId && menu.find(x => x.id === editId);
+    $("editorTitle").textContent = m ? T("editTitle")(nm(m)) : T("addTitle");
+    $("fSave").textContent = m ? T("saveChanges") : T("add");
+    if($("fErr").textContent) $("fErr").textContent = "";
+  }
   function clearForm(){
     editId = null;
     $("editor").reset();
     $("fCur").value = currency;
-    $("editorTitle").textContent = "Add a button";
-    $("fSave").textContent = "Add button";
     $("fCancel").hidden = true;
     $("fErr").textContent = "";
+    refreshEditorText();
   }
   function startEdit(id){
     const m = menu.find(x => x.id === id);
     if(!m) return;
     editId = id;
-    $("fName").value = m.name;
-    $("fPrice").value = (m.price/100).toFixed(2);
+    $("fName").value = nm(m);
+    $("fPrice").value = decimal(m.price);
     $("fEmoji").value = m.emoji || "";
     $("fType").value = m.type;
-    $("editorTitle").textContent = `Edit “${m.name}”`;
-    $("fSave").textContent = "Save changes";
     $("fCancel").hidden = false;
     $("fErr").textContent = "";
+    refreshEditorText();
     $("editor").scrollIntoView({behavior:"smooth", block:"center"});
     $("fName").focus({preventScroll:true});
   }
@@ -486,18 +1014,20 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     const name = $("fName").value.trim();
     const raw = $("fPrice").value.trim().replace(",", ".");
     const price = Math.round(parseFloat(raw) * 100);
-    if(!name){ $("fErr").textContent = "Enter a name for the button."; return; }
-    if(!raw || !isFinite(price) || price < 0){ $("fErr").textContent = "Enter a price like 4.50."; return; }
-    const type = $("fType").value;
-    const item = {
-      name, price, type,
-      emoji: $("fEmoji").value.trim()
-    };
+    if(!name){ $("fErr").textContent = T("errName"); return; }
+    if(!raw || !isFinite(price) || price < 0){ $("fErr").textContent = T("errPrice"); return; }
+    const item = { price, type: $("fType").value, emoji: $("fEmoji").value.trim() };
     if(editId){
       const i = menu.findIndex(x => x.id === editId);
-      if(i > -1) menu[i] = {...menu[i], ...item};
+      if(i > -1){
+        const old = menu[i];
+        const next = {...old, ...item};
+        // keep a default item translatable unless its name was actually changed
+        if(!(old.names && name === nm(old))){ next.name = name; delete next.names; }
+        menu[i] = next;
+      }
     }else{
-      menu.push({id: "i" + Date.now().toString(36) + Math.random().toString(36).slice(2,5), ...item});
+      menu.push({id: "i" + Date.now().toString(36) + Math.random().toString(36).slice(2,5), name, ...item});
     }
     save(KEY_MENU, menu);
     clearForm();
@@ -511,8 +1041,8 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
   });
 
   $("restore").addEventListener("click", () => {
-    if(!confirm("Replace your menu with the default five buttons? The current order will be cleared.")) return;
-    menu = DEFAULT_MENU.map(x=>({...x}));
+    if(!confirm(T("confirmRestore"))) return;
+    menu = clone();
     order = {};
     save(KEY_MENU, menu); save(KEY_ORDER, order);
     clearForm();
@@ -535,8 +1065,9 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     const touch = document.createElement("link");
     touch.rel = "apple-touch-icon"; touch.href = png;
     document.head.appendChild(touch);
+    document.querySelector('meta[name="apple-mobile-web-app-title"]').content = T("appName");
     const manifest = {
-      name:"Order Tally", short_name:"Tally", display:"standalone",
+      name:T("appName"), short_name:T("appName"), lang, display:"standalone",
       start_url: location.href, scope: location.origin + "/",
       background_color:"#e4e9e1", theme_color:"#21412f",
       icons:[{src:png, sizes:"512x512", type:"image/png", purpose:"any"}]
@@ -554,7 +1085,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
   document.addEventListener("dblclick", e => e.preventDefault(), {passive:false});
 
   clearForm();
-  render();
+  applyLang();
 })();
 </script>
 </body>
