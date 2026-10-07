@@ -350,18 +350,27 @@ input[type=text],input[type=number],select{
 .paysum{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .paysum div{background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:10px 12px}
 .paysum span{display:block;font-size:.85rem;color:#6d6857}
-.paysum strong{font-family:var(--mono);font-size:1.45rem;font-weight:600;letter-spacing:-.02em}
-.paystatus{margin-top:10px;padding:10px 12px;border-radius:10px;font-weight:700;min-height:2.9em}
+.paysum div{min-width:0;overflow:hidden}
+.paysum strong{font-family:var(--mono);font-size:1.45rem;font-weight:600;letter-spacing:-.02em;white-space:nowrap}
+.paysum span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the status box keeps one fixed height whatever it says, so nothing below it moves */
+.paystatus{
+  --pp:10px; --bf:1.3rem; --sf:.82rem;
+  margin-top:10px;padding:var(--pp) 12px;border-radius:10px;font-weight:700;
+  height:calc(var(--pp) * 2 + 4px + var(--bf) * 1.25 + var(--sf) * 2.6);
+  display:flex;flex-direction:column;justify-content:center;overflow:hidden;
+  border:2px solid transparent;
+}
 .paystatus.ok{background:var(--bar);color:var(--bar-ink)}
-.paystatus.short{border:2px dashed var(--danger);color:var(--danger)}
-.paystatus.idle{color:var(--muted);font-weight:600;padding-left:0}
-.paystatus .big{font-family:var(--mono);font-size:1.3rem;font-weight:600}
-.paystatus small{display:block;font-weight:600;opacity:.85;margin-top:2px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:0}
-.chips:empty{display:none}
+.paystatus.short{border-color:var(--danger);border-style:dashed;color:var(--danger)}
+.paystatus.idle{border-color:color-mix(in srgb, var(--muted) 50%, transparent);border-style:dashed;color:var(--muted);font-weight:600}
+.ps-main{line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps-main .big{font-family:var(--mono);font-size:var(--bf);font-weight:600}
+.ps-sub{
+  font-size:var(--sf);line-height:1.3;font-weight:600;opacity:.88;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
 #payConfirm .ls,#payClear .ls{display:none}
-.chip{border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;padding:4px 10px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:var(--mono)}
-.chip::after{content:" −";font-family:var(--sans)}
 .sheet h3{font-size:.95rem;font-weight:700;color:var(--muted);margin:16px 0 8px}
 .notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .coins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;justify-items:center;margin-bottom:18px}
@@ -377,13 +386,32 @@ input[type=text],input[type=number],select{
 .c200{background:radial-gradient(circle,#d8b24a 0 58%,#c9ccd0 59%)}
 .c1{--d:50px}.c2{--d:54px}.c5{--d:58px}
 .c10{--d:54px}.c20{--d:58px}
-.mcount{position:absolute;top:-7px;right:-7px;min-width:26px;height:26px;padding:0 6px;display:grid;place-items:center;border-radius:999px;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:.8rem;font-weight:600;border:2px solid var(--bg)}
+.mcount{position:absolute;top:-7px;right:-7px;cursor:pointer;min-width:26px;height:26px;padding:0 6px;display:grid;place-items:center;border-radius:999px;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:.8rem;font-weight:600;border:2px solid var(--bg)}
+.mcount::before{content:"";position:absolute;inset:-8px}
 .mfoot{
   position:sticky;bottom:0;margin:auto -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
   background:var(--bg);border-top:1.5px solid color-mix(in srgb, var(--muted) 40%, transparent);
-  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  display:flex;flex-wrap:nowrap;gap:8px;align-items:center;
 }
-.mfoot .solid{flex:1 1 180px;padding:13px 16px;font-size:1.02rem}
+.mfoot .ghost{flex:none;padding:8px 14px}
+.mfoot .solid{flex:1 1 0;min-width:0;padding:13px 14px;font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* shorter labels when the row gets narrow */
+@media (max-width:540px){
+  #payConfirm .lf{display:none}
+  #payConfirm .ls{display:inline}
+}
+/* very narrow phones: label above the amount so neither gets cut off */
+@media (max-width:359px){
+  .paysum div{display:block !important}
+  .paysum span{display:block}
+}
+@media (max-width:440px){
+  .paysum strong{letter-spacing:-.04em}
+  #payClear{padding:6px 13px;font-size:1.15rem;line-height:1}
+  #payClear .lf{display:none}
+  #payClear .ls{display:inline}
+  .mfoot .ghost{padding-left:12px;padding-right:12px}
+}
 .mfoot .solid:disabled{opacity:.4;cursor:default}
 .hgiven{font-size:.8rem;color:var(--muted);margin-top:2px}
 /* ===== payment sheet: shrink step by step as screen height runs out ===== */
@@ -393,7 +421,7 @@ input[type=text],input[type=number],select{
   .paysum{margin-top:10px}
   .paysum div{padding:8px 12px}
   .paysum strong{font-size:1.25rem}
-  .paystatus{margin-top:8px;padding:8px 12px}
+  .paystatus{margin-top:8px;--pp:8px}
   .sheet h3{margin:10px 0 6px}
   .note{height:46px}
   .coins{--cs:.88;gap:8px;row-gap:6px;margin-bottom:12px}
@@ -407,15 +435,12 @@ input[type=text],input[type=number],select{
   .mclose{width:30px;height:30px;font-size:1rem;border-width:1.5px}
   /* label and amount on one line */
   .paysum{margin-top:8px;gap:8px}
-  .paysum div{padding:6px 10px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0 6px}
+  .paysum div{padding:6px 10px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:nowrap;gap:0 6px}
+  .paysum span{min-width:0;flex:0 1 auto}
+  .paysum strong{flex:none}
   .paysum span{font-size:.78rem}
   .paysum strong{font-size:1.12rem}
-  .paystatus{margin-top:6px;padding:6px 10px;min-height:0;font-size:.9rem}
-  .paystatus.idle{padding-left:0}
-  .paystatus .big{font-size:1.1rem}
-  .paystatus small{font-size:.78rem}
-  .chips{margin-top:6px;gap:4px}
-  .chip{padding:2px 8px;font-size:.78rem}
+  .paystatus{margin-top:6px;--pp:5px;--bf:1.1rem;--sf:.76rem;padding-left:10px;padding-right:10px;font-size:.9rem}
   .sheet h3{margin:8px 0 4px;font-size:.8rem}
   .notes{gap:8px}
   .note{height:40px;font-size:1rem}
@@ -424,9 +449,7 @@ input[type=text],input[type=number],select{
   /* footer buttons in a single row with a shorter confirm label */
   .mfoot{margin:auto -14px 0;padding:8px 14px calc(8px + env(safe-area-inset-bottom,0px));flex-wrap:nowrap;gap:6px}
   .mfoot .ghost{padding:6px 10px;font-size:.85rem;border-width:1.5px}
-  .mfoot .solid{flex:1 1 auto;padding:10px 12px;font-size:.95rem;white-space:nowrap}
-  #payConfirm .lf{display:none}
-  #payConfirm .ls{display:inline}
+  .mfoot .solid{padding:10px 12px;font-size:.95rem}
 }
 @media (max-height:580px){
   .note{height:36px}
@@ -440,16 +463,8 @@ input[type=text],input[type=number],select{
   .pay-right h3:first-child{margin-top:0}
   .note{height:38px}
   .coins{--cs:.74}
-  #payConfirm .lf{display:inline}
-  #payConfirm .ls{display:none}
 }
-/* narrow + short phones: the reset button becomes an icon so all three fit in one row */
-@media (max-height:680px) and (max-width:400px){
-  #payClear{padding:4px 12px;font-size:1.15rem;line-height:1}
-  #payClear .lf{display:none}
-  #payClear .ls{display:inline}
-  .mfoot .solid{min-width:0}
-}
+
 @media (prefers-reduced-motion: reduce){.money{transition:none}}
 
 /* ---------- toast ---------- */
@@ -630,7 +645,6 @@ input[type=text],input[type=number],select{
       <div><span data-t="given">Given</span><strong id="payGiven"></strong></div>
     </div>
     <div class="paystatus" id="payStatus" aria-live="polite"></div>
-    <div class="chips" id="payChips"></div>
     </div>
     <div class="pay-right">
     <h3 data-t="notes">Notes</h3>
@@ -1241,7 +1255,7 @@ input[type=text],input[type=number],select{
     const parts = [];
     for(const d of DENOMS){
       const k = Math.floor(c / d);
-      if(k){ parts.push((k > 1 ? k + "× " : "") + denomLabel(d)); c -= k*d; }
+      if(k){ parts.push(((k > 1 ? k + "×\u00a0" : "") + denomLabel(d)).replace(/ /g, "\u00a0")); c -= k*d; }
     }
     return parts.join(" + ");
   }
@@ -1262,18 +1276,19 @@ input[type=text],input[type=number],select{
         badge.textContent = c;
       }else if(badge) badge.remove();
     });
-    $("payChips").innerHTML = exact ? "" : DENOMS.filter(v => given[v]).map(v =>
-      `<button class="chip" data-unmoney="${v}" aria-label="${esc(T("removeOne")(denomLabel(v)))}">${given[v]}× ${esc(denomLabel(v))}</button>`).join("");
     const st = $("payStatus");
     if(!exact && g === 0){
-      st.className = "paystatus idle"; st.textContent = T("tapMoney");
+      st.className = "paystatus idle";
+      st.innerHTML = `<div class="ps-sub">${esc(T("tapMoney"))}</div>`;
     }else if(g < due){
-      st.className = "paystatus short"; st.innerHTML = `<span class="big">${esc(T("missing")(money(due - g)))}</span>`;
+      st.className = "paystatus short";
+      st.innerHTML = `<div class="ps-main"><span class="big">${esc(T("missing")(money(due - g)))}</span></div>`;
     }else if(g === due){
-      st.className = "paystatus ok"; st.textContent = T("noChange");
+      st.className = "paystatus ok";
+      st.innerHTML = `<div class="ps-main">${esc(T("noChange"))}</div>`;
     }else{
       st.className = "paystatus ok";
-      st.innerHTML = `<span>${esc(T("change"))}</span> <span class="big">${money(g - due)}</span><small>${esc(T("giveBack"))} ${esc(breakdown(g - due))}</small>`;
+      st.innerHTML = `<div class="ps-main">${esc(T("change"))} <span class="big">${money(g - due)}</span></div><div class="ps-sub">${esc(T("giveBack"))} ${esc(breakdown(g - due))}</div>`;
     }
     $("payConfirm").disabled = g < due || due === 0;
     if(!$("payConfirm").dataset.lang || $("payConfirm").dataset.lang !== lang){
@@ -1304,6 +1319,13 @@ input[type=text],input[type=number],select{
   $("payClose").addEventListener("click", closePay);
   $("payModal").addEventListener("click", e => {
     if(e.target === $("payModal")) { closePay(); return; }
+    const badge = e.target.closest(".mcount");
+    if(badge){
+      const v = Number(badge.parentElement.dataset.money);
+      if(given[v] > 1) given[v]--; else delete given[v];
+      renderPay();
+      return;
+    }
     const m = e.target.closest("[data-money]");
     if(m){
       if(exact){ exact = false; given = {}; }
@@ -1312,12 +1334,6 @@ input[type=text],input[type=number],select{
       renderPay();
       if(navigator.vibrate) navigator.vibrate(10);
       return;
-    }
-    const u = e.target.closest("[data-unmoney]");
-    if(u){
-      const v = Number(u.dataset.unmoney);
-      if(given[v] > 1) given[v]--; else delete given[v];
-      renderPay();
     }
   });
   $("payExact").addEventListener("click", () => { exact = true; given = {}; renderPay(); });
