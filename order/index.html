@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Order Tally</title>
 <meta name="theme-color" content="#21412f">
 <meta name="mobile-web-app-capable" content="yes">
@@ -56,7 +56,8 @@
 }
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-html,body{margin:0}
+html,body{margin:0;touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,input,select,label{touch-action:manipulation}
 body{
   background:var(--bg);color:var(--ink);font-family:var(--sans);
   font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;
@@ -547,6 +548,12 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
     ml.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type:"application/manifest+json"}));
     document.head.appendChild(ml);
   }catch(e){}
+
+  /* ---------- block zoom (iOS ignores user-scalable=no) ---------- */
+  ["gesturestart","gesturechange","gestureend"].forEach(t =>
+    document.addEventListener(t, e => e.preventDefault(), {passive:false}));
+  document.addEventListener("touchmove", e => { if(e.touches.length > 1) e.preventDefault(); }, {passive:false});
+  document.addEventListener("dblclick", e => e.preventDefault(), {passive:false});
 
   clearForm();
   render();
