@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Order Tally</title>
+<meta name="theme-color" content="#21412f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Order Tally">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e4e9e1;
+  --ink:#16261c;
+  --muted:#5d6c62;
+  --bar:#21412f;
+  --bar-ink:#f1f5ee;
+  --food:#f0c04a;
+  --food-ink:#2b2205;
+  --food-edge:#c79a2a;
+  --drink:#7fb3d8;
+  --drink-ink:#0d2233;
+  --drink-edge:#5687ab;
+  --alc:#7a2e4f;
+  --paper:#fffdf6;
+  --paper-ink:#1d1d1a;
+  --paper-rule:#c9c4b4;
+  --field:#ffffff;
+  --danger:#b3261e;
+  --focus:#1c6dd0;
+  --sans:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121a15; --ink:#e4ebe5; --muted:#93a398; --bar:#1b3325; --bar-ink:#e4ebe5;
+    --food:#d9a933; --food-ink:#221a03; --food-edge:#9c7a1d;
+    --drink:#5f97bf; --drink-ink:#061522; --drink-edge:#3d6a8b;
+    --alc:#c9719a; --paper:#efeadb; --paper-ink:#1d1d1a; --paper-rule:#b2ac99;
+    --field:#1b241e; --danger:#f2766b; --focus:#7db4ff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121a15; --ink:#e4ebe5; --muted:#93a398; --bar:#1b3325; --bar-ink:#e4ebe5;
+  --food:#d9a933; --food-ink:#221a03; --food-edge:#9c7a1d;
+  --drink:#5f97bf; --drink-ink:#061522; --drink-edge:#3d6a8b;
+  --alc:#c9719a; --paper:#efeadb; --paper-ink:#1d1d1a; --paper-rule:#b2ac99;
+  --field:#1b241e; --danger:#f2766b; --focus:#7db4ff;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;
+  min-height:100vh;
+}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:18px clamp(16px,4vw,32px) 10px;max-width:1120px;margin:0 auto;
+}
+h1{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:0;line-height:1}
+.ghost{
+  background:transparent;border:2px solid currentColor;border-radius:999px;
+  padding:7px 16px;font-weight:700;cursor:pointer;color:var(--ink);
+}
+.ghost[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+main{
+  max-width:1120px;margin:0 auto;padding:6px clamp(16px,4vw,32px) 120px;
+  display:grid;grid-template-columns:1fr;gap:28px;
+}
+@media (min-width:860px){
+  main{grid-template-columns:minmax(0,1fr) 340px;align-items:start;padding-bottom:40px}
+}
+
+/* ---------- keys ---------- */
+.group h2{font-size:1.05rem;font-weight:700;margin:0 0 10px;color:var(--muted)}
+.group + .group{margin-top:22px}
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.key{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;
+  min-height:112px;padding:14px 14px 12px;text-align:left;cursor:pointer;
+  border:0;border-radius:14px;
+  background:var(--food);color:var(--food-ink);
+  box-shadow:0 5px 0 var(--food-edge);
+  transition:transform .06s ease, box-shadow .06s ease;
+  user-select:none;-webkit-user-select:none;
+}
+.key.drink{background:var(--drink);color:var(--drink-ink);box-shadow:0 5px 0 var(--drink-edge)}
+.key:active{transform:translateY(4px);box-shadow:0 1px 0 var(--food-edge)}
+.key.drink:active{box-shadow:0 1px 0 var(--drink-edge)}
+.key .emoji{font-size:1.7rem;line-height:1}
+.key .name{font-size:1.15rem;font-weight:800;line-height:1.15;margin-top:8px;word-break:break-word}
+.key .price{font-family:var(--mono);font-size:.95rem;font-weight:600;opacity:.85}
+.key .alc{
+  display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;
+  background:var(--alc);color:#fff;font-family:var(--sans);font-size:.72rem;font-weight:700;vertical-align:2px;
+}
+.count{
+  position:absolute;top:-8px;right:-8px;min-width:32px;height:32px;padding:0 8px;
+  display:grid;place-items:center;border-radius:999px;
+  background:var(--bar);color:var(--bar-ink);font-family:var(--mono);font-weight:600;font-size:.95rem;
+  border:3px solid var(--bg);
+}
+.count.bump{animation:bump .22s ease}
+@keyframes bump{50%{transform:scale(1.25)}}
+.editing .key{outline:2px dashed currentColor;outline-offset:-6px}
+.editing .key .count{display:none}
+.del{
+  position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:999px;border:0;
+  background:var(--danger);color:#fff;font-size:1.1rem;line-height:1;cursor:pointer;display:none;
+}
+.editing .del{display:block}
+.empty-group{color:var(--muted);font-size:.95rem;margin:0}
+
+/* ---------- editor ---------- */
+.editor{
+  margin-top:26px;padding:18px;border-radius:16px;border:2px solid var(--ink);display:none;
+}
+.editing .editor{display:block}
+.editor h2{margin:0 0 12px;font-size:1.15rem}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:700}
+input[type=text],input[type=number],select{
+  padding:10px 12px;border-radius:10px;border:2px solid var(--muted);background:var(--field);font-weight:500;
+  min-width:0;
+}
+.check{flex-direction:row;align-items:center;gap:8px;font-weight:600;margin-top:12px}
+.check input{width:20px;height:20px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.solid{
+  border:0;border-radius:999px;padding:10px 18px;font-weight:700;cursor:pointer;
+  background:var(--bar);color:var(--bar-ink);
+}
+.err{color:var(--danger);font-weight:600;margin:10px 0 0;min-height:1.2em;font-size:.92rem}
+.hint{color:var(--muted);font-size:.9rem;margin:8px 0 0}
+
+/* ---------- receipt ---------- */
+.receipt-wrap{position:relative}
+@media (min-width:860px){.receipt-wrap{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}}
+.receipt{
+  background:var(--paper);color:var(--paper-ink);font-family:var(--mono);
+  padding:22px 20px 26px;position:relative;
+  filter:drop-shadow(0 6px 10px rgba(20,40,25,.18));
+  --zig:10px;
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/var(--zig) 51% repeat-x,
+    conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) top/var(--zig) 51% repeat-x;
+  mask:
+    conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/var(--zig) 51% repeat-x,
+    conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) top/var(--zig) 51% repeat-x;
+}
+.receipt h2{font-family:var(--sans);font-size:1.4rem;font-weight:800;margin:0 0 2px;letter-spacing:-.01em}
+.receipt .sub{font-size:.8rem;color:#6d6857;margin:0 0 14px}
+.lines{list-style:none;margin:0;padding:0;border-top:2px dashed var(--paper-rule)}
+.line{
+  display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;
+  padding:10px 0;border-bottom:1px dashed var(--paper-rule);font-size:.95rem;
+}
+.line .qty{font-weight:600;min-width:2.6ch}
+.line .lname{font-weight:600;overflow-wrap:anywhere}
+.line .lsum{text-align:right;font-weight:600}
+.line .each{grid-column:2;font-size:.78rem;color:#6d6857}
+.line .steppers{grid-column:3;display:flex;gap:6px;justify-content:flex-end}
+.step{
+  width:30px;height:30px;border-radius:8px;border:1.5px solid var(--paper-ink);background:transparent;
+  color:var(--paper-ink);font-family:var(--mono);font-weight:600;cursor:pointer;line-height:1;
+}
+.nothing{padding:22px 0;text-align:center;color:#6d6857;font-size:.92rem;border-bottom:1px dashed var(--paper-rule)}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;gap:10px}
+.total span:first-child{font-family:var(--sans);font-weight:700;font-size:1.05rem}
+.total strong{font-size:1.8rem;font-weight:600;letter-spacing:-.02em}
+.itemsum{font-size:.82rem;color:#6d6857;text-align:right;margin-top:2px}
+.reset{
+  width:100%;margin-top:16px;padding:12px;border-radius:10px;cursor:pointer;
+  border:2px solid var(--danger);background:transparent;color:var(--danger);
+  font-family:var(--sans);font-weight:800;font-size:1rem;
+}
+.reset.armed{background:var(--danger);color:#fff}
+.reset:disabled{opacity:.4;cursor:default}
+
+/* ---------- mobile bottom bar ---------- */
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:5;
+  padding:12px clamp(16px,4vw,32px) calc(12px + env(safe-area-inset-bottom,0px));
+  background:var(--bar);color:var(--bar-ink);
+  display:flex;align-items:center;gap:12px;
+}
+.bar .btotal{flex:1;display:flex;flex-direction:column;line-height:1.15;background:none;border:0;text-align:left;cursor:pointer;padding:0;color:inherit}
+.bar .btotal small{opacity:.75;font-size:.82rem}
+.bar .btotal strong{font-family:var(--mono);font-size:1.45rem;font-weight:600}
+.bar .reset{width:auto;margin:0;padding:10px 18px;border-color:#f3a59e;color:#f3a59e}
+.bar .reset.armed{background:#f3a59e;color:var(--bar)}
+@media (min-width:860px){.bar{display:none}}
+
+footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:var(--muted);font-size:.85rem}
+@media (max-width:859px){footer{padding-bottom:110px}}
+@media (prefers-reduced-motion: reduce){
+  .key,.count.bump{transition:none;animation:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Order Tally</h1>
+  <button class="ghost" id="editToggle" aria-pressed="false">Edit menu</button>
+</header>
+
+<main id="app">
+  <section aria-label="Menu">
+    <div class="group">
+      <h2>Food</h2>
+      <div class="keys" id="foodKeys"></div>
+    </div>
+    <div class="group">
+      <h2>Drinks</h2>
+      <div class="keys" id="drinkKeys"></div>
+    </div>
+
+    <form class="editor" id="editor" autocomplete="off">
+      <h2 id="editorTitle">Add a button</h2>
+      <div class="row">
+        <label>Name<input type="text" id="fName" maxlength="40" placeholder="e.g. Hot dog"></label>
+        <label>Price<input type="text" id="fPrice" inputmode="decimal" placeholder="4.50"></label>
+        <label>Icon<input type="text" id="fEmoji" maxlength="4" placeholder="🌭"></label>
+        <label>Type
+          <select id="fType">
+            <option value="food">Food</option>
+            <option value="drink">Drink</option>
+          </select>
+        </label>
+      </div>
+      <label class="check" id="alcWrap"><input type="checkbox" id="fAlc"> Contains alcohol</label>
+      <p class="err" id="fErr" role="alert"></p>
+      <div class="actions">
+        <button type="submit" class="solid" id="fSave">Add button</button>
+        <button type="button" class="ghost" id="fCancel" hidden>Cancel edit</button>
+      </div>
+      <p class="hint">Tap a button above to edit it, or × to remove it.</p>
+      <div class="row" style="margin-top:18px">
+        <label>Currency symbol<input type="text" id="fCur" maxlength="4"></label>
+      </div>
+      <div class="actions">
+        <button type="button" class="ghost" id="restore">Restore default menu</button>
+      </div>
+    </form>
+  </section>
+
+  <aside class="receipt-wrap" id="order" aria-label="Order">
+    <div class="receipt">
+      <h2>Order</h2>
+      <p class="sub" id="stamp"></p>
+      <ul class="lines" id="lines"></ul>
+      <div class="total"><span>Total</span><strong id="total">0.00</strong></div>
+      <div class="itemsum" id="itemsum">0 items</div>
+      <button class="reset" id="reset">Reset order</button>
+    </div>
+  </aside>
+</main>
+
+<footer>Menu and order are saved on this device.</footer>
+
+<div class="bar">
+  <button class="btotal" id="jump" aria-label="Show order">
+    <small id="barCount">0 items</small>
+    <strong id="barTotal">0.00</strong>
+  </button>
+  <button class="reset" id="reset2">Reset</button>
+</div>
+
+<script>
+(function(){
+  const KEY_MENU = "orderTally.menu.v1";
+  const KEY_ORDER = "orderTally.order.v1";
+  const KEY_CUR = "orderTally.currency.v1";
+
+  const DEFAULT_MENU = [
+    {id:"fries",  name:"Fries",       price:350,  type:"food",  emoji:"🍟", alc:false},
+    {id:"burger", name:"Burger",      price:890,  type:"food",  emoji:"🍔", alc:false},
+    {id:"steak",  name:"Steak plate", price:1950, type:"food",  emoji:"🥩", alc:false},
+    {id:"lemon",  name:"Lemonade",    price:280,  type:"drink", emoji:"🍋", alc:false},
+    {id:"beer",   name:"Beer",        price:420,  type:"drink", emoji:"🍺", alc:true}
+  ];
+
+  function load(key, fallback){
+    try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch(e){ return fallback; }
+  }
+  function save(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+
+  let menu = load(KEY_MENU, null);
+  if(!Array.isArray(menu)) menu = DEFAULT_MENU.map(x=>({...x}));
+  let order = load(KEY_ORDER, {});
+  if(!order || typeof order !== "object") order = {};
+  let currency = load(KEY_CUR, "€");
+  let editing = false;
+  let editId = null;
+
+  const $ = id => document.getElementById(id);
+  const app = $("app");
+
+  function money(cents){
+    const n = (cents/100).toFixed(2);
+    return currency + n;
+  }
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  /* ---------- keys ---------- */
+  function renderKeys(bumpId){
+    for(const type of ["food","drink"]){
+      const box = $(type === "food" ? "foodKeys" : "drinkKeys");
+      const items = menu.filter(m => m.type === type);
+      if(!items.length){
+        box.innerHTML = `<p class="empty-group">No ${type === "food" ? "food" : "drinks"} yet. Use “Edit menu” to add some.</p>`;
+        continue;
+      }
+      box.innerHTML = items.map(m => {
+        const c = order[m.id] || 0;
+        return `<div style="position:relative">
+          <button class="key ${type}" data-id="${m.id}" aria-label="${esc(m.name)}, ${money(m.price)}${c ? ", ordered " + c : ""}">
+            <span class="emoji" aria-hidden="true">${esc(m.emoji || (type==="food"?"🍽️":"🥤"))}</span>
+            <span class="name">${esc(m.name)}${m.alc ? '<span class="alc">18+</span>' : ""}</span>
+            <span class="price">${money(m.price)}</span>
+            ${c ? `<span class="count${bumpId===m.id?" bump":""}" aria-hidden="true">${c}</span>` : ""}
+          </button>
+          <button class="del" data-del="${m.id}" aria-label="Remove ${esc(m.name)}">×</button>
+        </div>`;
+      }).join("");
+    }
+  }
+
+  /* ---------- receipt ---------- */
+  function renderOrder(){
+    const ids = Object.keys(order).filter(id => order[id] > 0 && menu.some(m => m.id === id));
+    let total = 0, count = 0;
+    const lines = $("lines");
+    if(!ids.length){
+      lines.innerHTML = `<li class="nothing">Nothing ordered yet.<br>Tap a button to add it.</li>`;
+    }else{
+      lines.innerHTML = ids.map(id => {
+        const m = menu.find(x => x.id === id);
+        const q = order[id];
+        total += q * m.price; count += q;
+        return `<li class="line">
+          <span class="qty">${q}×</span>
+          <span class="lname">${esc(m.name)}</span>
+          <span class="lsum">${money(q*m.price)}</span>
+          <span class="each">${money(m.price)} each</span>
+          <span class="steppers">
+            <button class="step" data-minus="${id}" aria-label="Remove one ${esc(m.name)}">−</button>
+            <button class="step" data-plus="${id}" aria-label="Add one ${esc(m.name)}">+</button>
+          </span>
+        </li>`;
+      }).join("");
+    }
+    const label = count === 1 ? "1 item" : count + " items";
+    $("total").textContent = money(total);
+    $("itemsum").textContent = label;
+    $("barTotal").textContent = money(total);
+    $("barCount").textContent = label;
+    $("reset").disabled = $("reset2").disabled = count === 0;
+    $("stamp").textContent = new Date().toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
+  }
+
+  function render(bumpId){ renderKeys(bumpId); renderOrder(); }
+
+  function add(id, delta){
+    order[id] = Math.max(0, (order[id] || 0) + delta);
+    if(order[id] === 0) delete order[id];
+    save(KEY_ORDER, order);
+    render(delta > 0 ? id : null);
+    if(delta > 0 && navigator.vibrate) navigator.vibrate(12);
+  }
+
+  /* ---------- clicks ---------- */
+  document.addEventListener("click", e => {
+    const del = e.target.closest("[data-del]");
+    if(del){
+      const id = del.dataset.del;
+      const m = menu.find(x => x.id === id);
+      if(m && confirm(`Remove “${m.name}” from the menu?`)){
+        menu = menu.filter(x => x.id !== id);
+        delete order[id];
+        save(KEY_MENU, menu); save(KEY_ORDER, order);
+        if(editId === id) clearForm();
+        render();
+      }
+      return;
+    }
+    const key = e.target.closest(".key");
+    if(key){
+      if(editing) startEdit(key.dataset.id);
+      else add(key.dataset.id, 1);
+      return;
+    }
+    const minus = e.target.closest("[data-minus]");
+    if(minus){ add(minus.dataset.minus, -1); return; }
+    const plus = e.target.closest("[data-plus]");
+    if(plus){ add(plus.dataset.plus, 1); return; }
+  });
+
+  /* ---------- reset with second-tap confirm ---------- */
+  let armTimer = null;
+  function handleReset(e){
+    const btns = [$("reset"), $("reset2")];
+    if(!btns[0].classList.contains("armed")){
+      btns.forEach(b => b.classList.add("armed"));
+      $("reset").textContent = "Tap again to clear";
+      $("reset2").textContent = "Sure?";
+      clearTimeout(armTimer);
+      armTimer = setTimeout(disarm, 3000);
+      return;
+    }
+    order = {};
+    save(KEY_ORDER, order);
+    disarm();
+    render();
+  }
+  function disarm(){
+    [$("reset"), $("reset2")].forEach(b => b.classList.remove("armed"));
+    $("reset").textContent = "Reset order";
+    $("reset2").textContent = "Reset";
+  }
+  $("reset").addEventListener("click", handleReset);
+  $("reset2").addEventListener("click", handleReset);
+  $("jump").addEventListener("click", () => $("order").scrollIntoView({behavior:"smooth"}));
+
+  /* ---------- editor ---------- */
+  $("editToggle").addEventListener("click", () => {
+    editing = !editing;
+    app.classList.toggle("editing", editing);
+    $("editToggle").setAttribute("aria-pressed", editing);
+    $("editToggle").textContent = editing ? "Done" : "Edit menu";
+    if(!editing) clearForm();
+  });
+
+  function syncAlc(){ $("alcWrap").style.display = $("fType").value === "drink" ? "flex" : "none"; }
+  $("fType").addEventListener("change", syncAlc);
+
+  function clearForm(){
+    editId = null;
+    $("editor").reset();
+    $("fCur").value = currency;
+    $("editorTitle").textContent = "Add a button";
+    $("fSave").textContent = "Add button";
+    $("fCancel").hidden = true;
+    $("fErr").textContent = "";
+    syncAlc();
+  }
+  function startEdit(id){
+    const m = menu.find(x => x.id === id);
+    if(!m) return;
+    editId = id;
+    $("fName").value = m.name;
+    $("fPrice").value = (m.price/100).toFixed(2);
+    $("fEmoji").value = m.emoji || "";
+    $("fType").value = m.type;
+    $("fAlc").checked = !!m.alc;
+    $("editorTitle").textContent = `Edit “${m.name}”`;
+    $("fSave").textContent = "Save changes";
+    $("fCancel").hidden = false;
+    $("fErr").textContent = "";
+    syncAlc();
+    $("editor").scrollIntoView({behavior:"smooth", block:"center"});
+    $("fName").focus({preventScroll:true});
+  }
+  $("fCancel").addEventListener("click", clearForm);
+
+  $("editor").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("fName").value.trim();
+    const raw = $("fPrice").value.trim().replace(",", ".");
+    const price = Math.round(parseFloat(raw) * 100);
+    if(!name){ $("fErr").textContent = "Enter a name for the button."; return; }
+    if(!raw || !isFinite(price) || price < 0){ $("fErr").textContent = "Enter a price like 4.50."; return; }
+    const type = $("fType").value;
+    const item = {
+      name, price, type,
+      emoji: $("fEmoji").value.trim(),
+      alc: type === "drink" && $("fAlc").checked
+    };
+    if(editId){
+      const i = menu.findIndex(x => x.id === editId);
+      if(i > -1) menu[i] = {...menu[i], ...item};
+    }else{
+      menu.push({id: "i" + Date.now().toString(36) + Math.random().toString(36).slice(2,5), ...item});
+    }
+    save(KEY_MENU, menu);
+    clearForm();
+    render();
+  });
+
+  $("fCur").addEventListener("input", () => {
+    currency = $("fCur").value;
+    save(KEY_CUR, currency);
+    render();
+  });
+
+  $("restore").addEventListener("click", () => {
+    if(!confirm("Replace your menu with the default five buttons? The current order will be cleared.")) return;
+    menu = DEFAULT_MENU.map(x=>({...x}));
+    order = {};
+    save(KEY_MENU, menu); save(KEY_ORDER, order);
+    clearForm();
+    render();
+  });
+
+  /* ---------- home-screen icon + manifest ---------- */
+  try{
+    const c = document.createElement("canvas");
+    c.width = c.height = 512;
+    const g = c.getContext("2d");
+    g.fillStyle = "#21412f"; g.fillRect(0,0,512,512);
+    g.fillStyle = "#fffdf6"; g.fillRect(126,96,260,320);
+    g.fillStyle = "#21412f";
+    for(let y=150; y<330; y+=46){ g.fillRect(160,y,120,16); g.fillRect(300,y,52,16); }
+    g.fillStyle = "#f0c04a"; g.beginPath(); g.arc(378,380,70,0,Math.PI*2); g.fill();
+    g.fillStyle = "#2b2205"; g.font = "bold 92px sans-serif"; g.textAlign="center"; g.textBaseline="middle";
+    g.fillText("+",378,384);
+    const png = c.toDataURL("image/png");
+    const touch = document.createElement("link");
+    touch.rel = "apple-touch-icon"; touch.href = png;
+    document.head.appendChild(touch);
+    const manifest = {
+      name:"Order Tally", short_name:"Tally", display:"standalone",
+      start_url: location.href, scope: location.origin + "/",
+      background_color:"#e4e9e1", theme_color:"#21412f",
+      icons:[{src:png, sizes:"512x512", type:"image/png", purpose:"any"}]
+    };
+    const ml = document.createElement("link");
+    ml.rel = "manifest";
+    ml.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type:"application/manifest+json"}));
+    document.head.appendChild(ml);
+  }catch(e){}
+
+  clearForm();
+  render();
+})();
+</script>
+</body>
+</html>
