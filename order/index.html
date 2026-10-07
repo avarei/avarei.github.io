@@ -88,10 +88,12 @@ main{
 /* ---------- keys ---------- */
 .group h2{font-size:1.05rem;font-weight:700;margin:0 0 10px;color:var(--muted)}
 .group + .group{margin-top:22px}
-.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr));gap:12px}
+@media (max-width:520px){.keys{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
+.slot{position:relative;min-width:0;display:flex}
 .key{
   position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;
-  min-height:112px;padding:14px 14px 12px;text-align:left;cursor:pointer;
+  width:100%;min-width:0;min-height:112px;padding:14px 14px 12px;text-align:left;cursor:pointer;
   border:0;border-radius:14px;
   background:var(--food);color:var(--food-ink);
   box-shadow:0 5px 0 var(--food-edge);
@@ -102,7 +104,15 @@ main{
 .key:active{transform:translateY(4px);box-shadow:0 1px 0 var(--food-edge)}
 .key.drink:active{box-shadow:0 1px 0 var(--drink-edge)}
 .key .emoji{font-size:1.7rem;line-height:1}
-.key .name{font-size:1.15rem;font-weight:800;line-height:1.15;margin-top:8px;word-break:break-word}
+.key .name{font-size:1.15rem;font-weight:800;line-height:1.15;margin-top:8px;overflow-wrap:break-word;hyphens:manual}
+@media (max-width:520px){
+  .key{min-height:104px;padding:12px 9px 10px;border-radius:12px}
+  .key .emoji{font-size:1.45rem}
+  .key .name{font-size:.92rem;margin-top:6px;letter-spacing:-.01em}
+  .key .price{font-size:.85rem}
+  .key .alc{margin-left:4px;padding:1px 5px;font-size:.66rem}
+  .count{min-width:28px;height:28px;font-size:.85rem;top:-7px;right:-6px}
+}
 .key .price{font-family:var(--mono);font-size:.95rem;font-weight:600;opacity:.85}
 .key .alc{
   display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;
@@ -119,7 +129,7 @@ main{
 .editing .key{outline:2px dashed currentColor;outline-offset:-6px}
 .editing .key .count{display:none}
 .del{
-  position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:999px;border:0;
+  position:absolute;top:-8px;right:-8px;z-index:1;width:30px;height:30px;border:3px solid var(--bg);border-radius:999px;
   background:var(--danger);color:#fff;font-size:1.1rem;line-height:1;cursor:pointer;display:none;
 }
 .editing .del{display:block}
@@ -332,7 +342,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 24px;color:
       }
       box.innerHTML = items.map(m => {
         const c = order[m.id] || 0;
-        return `<div style="position:relative">
+        return `<div class="slot">
           <button class="key ${type}" data-id="${m.id}" aria-label="${esc(m.name)}, ${money(m.price)}${c ? ", ordered " + c : ""}">
             <span class="emoji" aria-hidden="true">${esc(m.emoji || (type==="food"?"🍽️":"🥤"))}</span>
             <span class="name">${esc(m.name)}${m.alc ? '<span class="alc">18+</span>' : ""}</span>
