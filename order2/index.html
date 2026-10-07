@@ -78,6 +78,13 @@ h1{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:800;letter-spacing:-.02em;ma
 
 /* ===== layout: phones = three swipeable panels, computers = two columns ===== */
 .tabs{display:none}
+.editbar{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1120px;margin:0 auto 14px;padding:0 clamp(16px,4vw,32px)}
+.editbar[hidden]{display:none}
+.editbar-lbl{font-weight:800;font-size:1.1rem}
+.editdone{
+  border:0;border-radius:999px;padding:9px 20px;cursor:pointer;font-weight:800;font-size:1rem;
+  background:var(--ink);color:var(--bg);
+}
 .more-toggle{
   width:100%;cursor:pointer;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;text-align:left;
   padding:14px 48px 14px 16px;border:2px solid var(--ink);border-radius:14px;position:relative;
@@ -92,7 +99,35 @@ h1{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:800;letter-spacing:-.02em;ma
 .more-title{font-size:1.2rem;font-weight:800}
 .more-sub{color:var(--muted);font-size:.92rem}
 .more-body{display:flex;flex-direction:column;gap:36px}
-.saved-note{color:var(--muted);font-size:.85rem;margin:0}
+.saved-note{color:var(--muted);font-size:.85rem;margin:14px 0 0}
+.settings h2{font-size:1.4rem;font-weight:800;margin:0 0 6px;letter-spacing:-.01em}
+.srow{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 12px;
+  padding:12px 0;border-top:1.5px solid color-mix(in srgb, var(--muted) 35%, transparent);
+}
+.srow h3{margin:0;font-size:1.05rem;font-weight:700}
+.sbtns{display:flex;gap:8px}
+.shint{flex-basis:100%;margin:0;color:var(--muted);font-size:.85rem}
+.srow .xmsg{flex-basis:100%;margin:0;min-height:0}
+.srow .xmsg:empty{display:none}
+/* import dialog: a small centered box on every screen size */
+.modal.dlg{align-items:center;padding:16px}
+.dialog{
+  width:100%;max-width:440px;max-height:100%;overflow-y:auto;background:var(--bg);color:var(--ink);
+  border-radius:16px;padding:18px;box-shadow:0 12px 40px rgba(0,0,0,.3);
+}
+.dialog h2{margin:0;font-size:1.3rem;font-weight:800}
+.dfile{margin:2px 0 12px;color:var(--muted);font-size:.85rem;overflow-wrap:anywhere}
+.dopt{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1.5px solid color-mix(in srgb, var(--muted) 35%, transparent);cursor:pointer}
+.dopt[hidden]{display:none}
+.dopt input{width:22px;height:22px;margin:1px 0 0;flex:none;accent-color:var(--bar)}
+.dopt b{display:block;font-weight:700}
+.dopt small{display:block;color:var(--muted);font-size:.85rem;margin-top:2px}
+.dopt.off{cursor:default;opacity:.6}
+.dnote{margin:8px 0 0;color:var(--muted);font-size:.85rem}
+.dnote:empty{display:none}
+.dbtns{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.dbtns .solid:disabled{opacity:.4;cursor:default}
 .stats{min-width:0}
 .panel{min-width:0}
 
@@ -124,6 +159,11 @@ h1{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:800;letter-spacing:-.02em;ma
     font-weight:700;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:6px;
   }
   .tab + .tab{border-left:2px solid var(--ink)}
+  /* while editing, the tab bar turns into one big Done button */
+  body.is-editing .tabs{display:none}
+  .editbar{margin:0 16px 4px;padding:0;flex:none}
+  .editbar-lbl{display:none}
+  .editdone{width:100%;padding:8px 6px;border:2px solid var(--ink);font-size:.95rem}
   .tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
   .tbadge{
     min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:inline-grid;place-items:center;
@@ -499,8 +539,6 @@ input[type=text],input[type=number],select{
 
 .langs{display:flex;gap:6px}
 .langs{gap:8px}
-.langrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.langrow h2{font-size:1.4rem;font-weight:800;margin:0;letter-spacing:-.01em}
 .lang{
   width:46px;height:46px;display:grid;place-items:center;padding:0;cursor:pointer;
   background:transparent;border:2px solid transparent;border-radius:999px;
@@ -517,7 +555,6 @@ input[type=text],input[type=number],select{
 <div class="shell">
 <header>
   <h1 data-t="appName">Order Tally</h1>
-  <button class="ghost" id="editToggle" aria-pressed="false">Edit menu</button>
 </header>
 
 <nav class="tabs" role="tablist" id="tabs">
@@ -525,6 +562,11 @@ input[type=text],input[type=number],select{
   <button class="tab" role="tab" id="tab1" data-tab="1" aria-controls="pOrder" aria-selected="false"><span data-t="order">Order</span><span class="tbadge" id="tabBadge" hidden></span></button>
   <button class="tab" role="tab" id="tab2" data-tab="2" aria-controls="pMore" aria-selected="false"><span data-t="more">More</span></button>
 </nav>
+
+<div class="editbar" id="editbar" hidden>
+  <span class="editbar-lbl" data-t="editingMenu">Editing the menu</span>
+  <button class="editdone" id="editDone"><span aria-hidden="true">✓</span> <span data-t="done">Done</span></button>
+</div>
 
 <main id="app">
 <div class="track" id="track">
@@ -603,20 +645,33 @@ input[type=text],input[type=number],select{
         <button data-period="all" data-t="pAll">All time</button>
       </div>
       <div id="statsBody"></div>
-      <div class="actions">
-        <button class="solid" id="exportJson" data-t="exportJson">Export as JSON</button>
-        <button class="ghost" id="copyJson" data-t="copyJson">Copy JSON</button>
-      </div>
-      <p class="xmsg" id="xmsg" role="status"></p>
     </section>
-      <div class="langrow">
-        <h2 id="langLbl" data-t="language">Language</h2>
-        <div class="langs" role="group" aria-labelledby="langLbl">
-          <button class="lang" data-lang="en" lang="en" aria-label="English" title="English">🇬🇧</button>
-          <button class="lang" data-lang="de" lang="de" aria-label="Deutsch" title="Deutsch">🇩🇪</button>
+
+      <section class="settings" data-t-aria="settings" aria-label="Settings">
+        <h2 data-t="settings">Settings</h2>
+        <div class="srow">
+          <h3 data-t="menu">Menu</h3>
+          <button class="ghost" id="editStart" data-t="editMenu">Edit menu</button>
         </div>
-      </div>
-      <p class="saved-note" data-t="saved">Menu, order and history are saved on this device.</p>
+        <div class="srow">
+          <h3 id="langLbl" data-t="language">Language</h3>
+          <div class="langs" role="group" aria-labelledby="langLbl">
+            <button class="lang" data-lang="en" lang="en" aria-label="English" title="English">🇬🇧</button>
+            <button class="lang" data-lang="de" lang="de" aria-label="Deutsch" title="Deutsch">🇩🇪</button>
+          </div>
+        </div>
+        <div class="srow srow-data">
+          <h3 data-t="data">Data</h3>
+          <div class="sbtns">
+            <button class="ghost" id="exportJson" data-t="exportBtn">Export</button>
+            <button class="ghost" id="importJson" data-t="importBtn">Import</button>
+          </div>
+          <input type="file" id="importFile" accept=".json,application/json" hidden>
+          <p class="shint" data-t="dataHint">Export saves the menu and all orders as a JSON file. Import can replace the menu and add orders from such a file.</p>
+          <p class="xmsg" id="xmsg" role="status"></p>
+        </div>
+        <p class="saved-note" data-t="saved">Menu, order and history are saved on this device.</p>
+      </section>
     </div>
   </section>
 </div>
@@ -661,6 +716,20 @@ input[type=text],input[type=number],select{
   </div>
 </div>
 
+<div class="modal dlg" id="impModal" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="impTitle">
+    <h2 id="impTitle" data-t="impTitle">Import</h2>
+    <p class="dfile" id="impFile"></p>
+    <label class="dopt" id="impMenuRow"><input type="checkbox" id="impMenu"><span><b id="impMenuLbl"></b><small id="impMenuSub"></small></span></label>
+    <label class="dopt" id="impOrdersRow"><input type="checkbox" id="impOrders"><span><b id="impOrdersLbl"></b><small id="impOrdersSub"></small></span></label>
+    <p class="dnote" id="impNote"></p>
+    <div class="dbtns">
+      <button class="ghost" id="impCancel" data-t="cancel">Cancel</button>
+      <button class="solid" id="impGo" data-t="impGo">Import</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="undo">Undo</button></div>
 
 <script>
@@ -675,10 +744,10 @@ input[type=text],input[type=number],select{
   /* ---------- translations ---------- */
   const STR = {
     en: {
-      appName:"Order Tally", editMenu:"Edit menu", done:"Done", menu:"Menu",
+      appName:"Order Tally", editMenu:"Edit menu", done:"Done", editingMenu:"Editing the menu", menu:"Menu",
       food:"Food", drinks:"Drinks",
-      emptyFood:"No food yet. Use “Edit menu” to add some.",
-      emptyDrinks:"No drinks yet. Use “Edit menu” to add some.",
+      emptyFood:"No food yet. Add some under More → Edit menu.",
+      emptyDrinks:"No drinks yet. Add some under More → Edit menu.",
       addTitle:"Add a button", editTitle:n=>`Edit “${n}”`,
       name:"Name", namePh:"e.g. Hot dog", price:"Price", pricePh:"4.50", icon:"Icon", type:"Type",
       optFood:"Food", optDrink:"Drink",
@@ -705,17 +774,31 @@ input[type=text],input[type=number],select{
       confirmDelEntry:"Remove this order from the history?",
       confirmClear:"Clear the whole history? This can’t be undone.",
       ariaDelEntry:"Remove from history",
-      more:"More", moreSub:"History, evaluation and language", language:"Language",
+      more:"More", moreSub:"History, evaluation, menu and language", language:"Language",
       stats:"Evaluation", pToday:"Today", pWeek:"7 days", pAll:"All time",
       kSales:"Total sales", kOrders:"Orders", kAvg:"Average order", kItems:"Items sold",
       foodDrinks:"Food and drinks", itemsHead:"Sold per item", byHour:"Sales by hour",
       colItem:"Item", colQty:"Qty", colRev:"Sales",
       foodLbl:"Food", drinkLbl:"Drinks", otherLbl:"Other",
       noStats:"No paid orders in this period yet.",
-      exportJson:"Export as JSON", copyJson:"Copy JSON",
-      exported:"Export saved.", copied:"JSON copied to the clipboard.",
-      exportFailed:"This browser blocked the file. Use “Copy JSON” instead.",
-      exportDeclined:"Export cancelled.", copyFailed:"Copying failed. Try “Export as JSON”.",
+      settings:"Settings", data:"Data", exportBtn:"Export", importBtn:"Import",
+      dataHint:"Export saves the menu and all orders as a JSON file. Import can replace the menu and add orders from such a file.",
+      impTitle:"Import", impGo:"Import", cancel:"Cancel",
+      impMenuLbl:n=>`Replace the menu with the ${n===1?"1 button":n+" buttons"} from the file`,
+      impMenuSub:l=>`New menu: ${l}`, impMenuSame:"The menu in the file is the same as yours.",
+      impMenuNone:"This file has no menu (older export).",
+      impOrdersLbl:n=>`Add ${n===1?"1 order":n+" orders"} to the history`,
+      impOrdersSkip:d=>`${d===1?"1 order is":d+" orders are"} already in the history and will be skipped.`,
+      impOrdersNone:"Every order in this file is already in the history.",
+      impOrdersEmpty:"This file has no orders.",
+      impOpenOrder:"Your open order will be cleared because some of its items aren't on the new menu.",
+      importedMenu:"Menu replaced.",
+      exported:"Export saved.", exportFailed:"This browser blocked the file download.",
+      exportDeclined:"Export cancelled.",
+      importBad:"This file isn’t an Order Tally export.",
+      importNone:"Nothing new: every order in this file is already in the history.",
+      confirmImport:(n,d)=>`Add ${n===1?"1 order":n+" orders"} from this file to the history?`+(d?` ${d===1?"1 order is":d+" orders are"} already there and will be skipped.`:""),
+      imported:n=>`Imported ${n===1?"1 order":n+" orders"}.`, importCancelled:"Import cancelled.",
       saved:"Menu, order and history are saved on this device.", showOrder:"Show order",
       errName:"Enter a name for the button.", errPrice:"Enter a price like 4.50.",
       confirmDel:n=>`Remove “${n}” from the menu?`,
@@ -724,10 +807,10 @@ input[type=text],input[type=number],select{
       ariaDel:n=>`Remove ${n}`, ariaMinus:n=>`Remove one ${n}`, ariaPlus:n=>`Add one ${n}`
     },
     de: {
-      appName:"Strichliste", editMenu:"Bearbeiten", done:"Fertig", menu:"Menü",
+      appName:"Strichliste", editMenu:"Bearbeiten", done:"Fertig", editingMenu:"Menü bearbeiten", menu:"Menü",
       food:"Speisen", drinks:"Getränke",
-      emptyFood:"Noch keine Speisen. Über „Bearbeiten“ hinzufügen.",
-      emptyDrinks:"Noch keine Getränke. Über „Bearbeiten“ hinzufügen.",
+      emptyFood:"Noch keine Speisen. Unter Mehr → Bearbeiten hinzufügen.",
+      emptyDrinks:"Noch keine Getränke. Unter Mehr → Bearbeiten hinzufügen.",
       addTitle:"Button hinzufügen", editTitle:n=>`„${n}“ bearbeiten`,
       name:"Name", namePh:"z. B. Hotdog", price:"Preis", pricePh:"4,50", icon:"Symbol", type:"Art",
       optFood:"Speise", optDrink:"Getränk",
@@ -754,17 +837,31 @@ input[type=text],input[type=number],select{
       confirmDelEntry:"Diese Bestellung aus dem Verlauf entfernen?",
       confirmClear:"Gesamten Verlauf löschen? Das kann nicht rückgängig gemacht werden.",
       ariaDelEntry:"Aus dem Verlauf entfernen",
-      more:"Mehr", moreSub:"Verlauf, Auswertung und Sprache", language:"Sprache",
+      more:"Mehr", moreSub:"Verlauf, Auswertung, Menü und Sprache", language:"Sprache",
       stats:"Auswertung", pToday:"Heute", pWeek:"7 Tage", pAll:"Gesamt",
       kSales:"Umsatz", kOrders:"Bestellungen", kAvg:"Ø pro Bestellung", kItems:"Verkaufte Artikel",
       foodDrinks:"Speisen und Getränke", itemsHead:"Verkauft pro Artikel", byHour:"Umsatz nach Uhrzeit",
       colItem:"Artikel", colQty:"Anz.", colRev:"Umsatz",
       foodLbl:"Speisen", drinkLbl:"Getränke", otherLbl:"Sonstiges",
       noStats:"In diesem Zeitraum gibt es noch keine bezahlten Bestellungen.",
-      exportJson:"Als JSON exportieren", copyJson:"JSON kopieren",
-      exported:"Export gespeichert.", copied:"JSON in die Zwischenablage kopiert.",
-      exportFailed:"Der Browser hat die Datei blockiert. Nutze stattdessen „JSON kopieren“.",
-      exportDeclined:"Export abgebrochen.", copyFailed:"Kopieren fehlgeschlagen. Versuche „Als JSON exportieren“.",
+      settings:"Einstellungen", data:"Daten", exportBtn:"Exportieren", importBtn:"Importieren",
+      dataHint:"Exportieren speichert das Menü und alle Bestellungen als JSON-Datei. Beim Importieren kann das Menü ersetzt und Bestellungen können hinzugefügt werden.",
+      impTitle:"Importieren", impGo:"Importieren", cancel:"Abbrechen",
+      impMenuLbl:n=>`Menü durch die ${n===1?"1 Button":n+" Buttons"} aus der Datei ersetzen`,
+      impMenuSub:l=>`Neues Menü: ${l}`, impMenuSame:"Das Menü in der Datei entspricht deinem aktuellen Menü.",
+      impMenuNone:"Diese Datei enthält kein Menü (älterer Export).",
+      impOrdersLbl:n=>`${n===1?"1 Bestellung":n+" Bestellungen"} zum Verlauf hinzufügen`,
+      impOrdersSkip:d=>`${d===1?"1 Bestellung ist":d+" Bestellungen sind"} schon im Verlauf und ${d===1?"wird":"werden"} übersprungen.`,
+      impOrdersNone:"Alle Bestellungen aus dieser Datei sind schon im Verlauf.",
+      impOrdersEmpty:"Diese Datei enthält keine Bestellungen.",
+      impOpenOrder:"Die offene Bestellung wird geleert, weil einige ihrer Artikel nicht im neuen Menü sind.",
+      importedMenu:"Menü ersetzt.",
+      exported:"Export gespeichert.", exportFailed:"Der Browser hat den Download blockiert.",
+      exportDeclined:"Export abgebrochen.",
+      importBad:"Diese Datei ist kein Export dieser App.",
+      importNone:"Nichts Neues: Alle Bestellungen aus dieser Datei sind schon im Verlauf.",
+      confirmImport:(n,d)=>`${n===1?"1 Bestellung":n+" Bestellungen"} aus dieser Datei zum Verlauf hinzufügen?`+(d?` ${d===1?"1 Bestellung ist":d+" Bestellungen sind"} schon vorhanden und ${d===1?"wird":"werden"} übersprungen.`:""),
+      imported:n=>`${n===1?"1 Bestellung":n+" Bestellungen"} importiert.`, importCancelled:"Import abgebrochen.",
       saved:"Menü, Bestellung und Verlauf werden auf diesem Gerät gespeichert.", showOrder:"Bestellung anzeigen",
       errName:"Gib einen Namen für den Button ein.", errPrice:"Gib einen Preis wie 4,50 ein.",
       confirmDel:n=>`„${n}“ aus dem Menü entfernen?`,
@@ -840,7 +937,6 @@ input[type=text],input[type=number],select{
     document.querySelectorAll("[data-t-ph]").forEach(el => el.placeholder = T(el.dataset.tPh));
     document.querySelectorAll("[data-t-aria]").forEach(el => el.setAttribute("aria-label", T(el.dataset.tAria)));
     document.querySelectorAll(".lang").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
-    $("editToggle").textContent = editing ? T("done") : T("editMenu");
     disarm();
     refreshEditorText();
     render();
@@ -990,7 +1086,6 @@ input[type=text],input[type=number],select{
     document.querySelectorAll("#periods button").forEach(b => b.setAttribute("aria-pressed", b.dataset.period === period));
     const entries = periodEntries();
     const st = computeStats(entries);
-    $("exportJson").disabled = $("copyJson").disabled = !entries.length;
     if(!entries.length){
       $("statsBody").innerHTML = `<p class="sempty">${esc(T("noStats"))}</p>`;
       return;
@@ -1043,16 +1138,22 @@ input[type=text],input[type=number],select{
   /* ---------- JSON export ---------- */
   const dec = c => Math.round(c) / 100;
   function buildExport(){
-    const entries = periodEntries();
+    const entries = history.slice();
     const st = computeStats(entries);
     const now = new Date();
     const data = {
       app: "Order Tally",
-      format: 1,
+      format: 2,
       exportedAt: now.toISOString(),
-      period,
       language: lang,
       currency,
+      menu: menu.map(m => {
+        const o = {id: m.id};
+        if(m.names) o.names = {...m.names};
+        o.name = nm(m);
+        o.price = dec(m.price); o.type = m.type; o.emoji = m.emoji || "";
+        return o;
+      }),
       summary: {
         orders: st.orders,
         itemsSold: st.qty,
@@ -1072,7 +1173,7 @@ input[type=text],input[type=number],select{
     };
     const d = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0") + "-" + String(now.getDate()).padStart(2,"0");
     const base = lang === "de" ? "strichliste" : "order-tally";
-    return {json: JSON.stringify(data, null, 2), filename: `${base}-${period}-${d}.json`};
+    return {json: JSON.stringify(data, null, 2), filename: `${base}-${d}.json`};
   }
 
   // Resolve the viewer's download capability early so the click handler can use it right away.
@@ -1118,21 +1219,139 @@ input[type=text],input[type=number],select{
     }
   });
 
-  $("copyJson").addEventListener("click", async () => {
-    const {json} = buildExport();
-    try{
-      await navigator.clipboard.writeText(json);
-      xmsg(T("copied"));
-    }catch(e){
-      try{
-        const ta = document.createElement("textarea");
-        ta.value = json; ta.setAttribute("readonly",""); ta.style.position = "fixed"; ta.style.opacity = "0";
-        document.body.appendChild(ta); ta.select();
-        const ok = document.execCommand("copy");
-        ta.remove();
-        xmsg(ok ? T("copied") : T("copyFailed"));
-      }catch(_){ xmsg(T("copyFailed")); }
+  /* ---------- JSON import (adds orders from an export file to the history) ---------- */
+  const cents = x => Math.round(Number(x) * 100);
+  function parseImport(text){
+    let data;
+    try{ data = JSON.parse(text); }catch(e){ return null; }
+    const orders = data && Array.isArray(data.orders) ? data.orders : null;
+    if(!orders) return null;
+    const out = [];
+    for(const o of orders){
+      const t = Date.parse(o && o.paidAt);
+      if(!isFinite(t) || !Array.isArray(o.lines) || !o.lines.length) continue;
+      const lines = [];
+      for(const l of o.lines){
+        const qty = Math.round(Number(l.quantity));
+        const price = cents(l.unitPrice);
+        if(!(qty > 0) || !isFinite(price) || price < 0) continue;
+        const line = {id: String(l.id || l.name || "item"), qty, price, type: l.type === "drink" ? "drink" : l.type === "food" ? "food" : "other"};
+        // default items get their translations back; everything else keeps its exported name
+        const dn = DEFAULT_NAMES[line.id];
+        if(dn) line.names = {...dn}; else line.name = String(l.name || line.id);
+        lines.push(line);
+      }
+      if(!lines.length) continue;
+      const total = lines.reduce((a,l) => a + l.qty*l.price, 0);
+      const given = isFinite(cents(o.given)) && cents(o.given) >= total ? cents(o.given) : total;
+      out.push({t, lines, total, given, change: given - total});
     }
+    return out;
+  }
+  function parseMenu(data){
+    if(!data || !Array.isArray(data.menu)) return null;
+    const out = [], ids = new Set();
+    for(const it of data.menu){
+      const price = cents(it && it.price);
+      const type = it && (it.type === "drink" ? "drink" : it.type === "food" ? "food" : null);
+      const names = it && it.names && typeof it.names === "object" ? {en: String(it.names.en || it.name || ""), de: String(it.names.de || it.names.en || it.name || "")} : null;
+      const name = String((it && it.name) || "").trim().slice(0, 40);
+      if(!type || !isFinite(price) || price < 0 || (!name && !names)) continue;
+      let id = String(it.id || ("i" + Date.now().toString(36) + out.length));
+      while(ids.has(id)) id += "x";
+      ids.add(id);
+      const m = {id, price, type, emoji: String(it.emoji || "").slice(0, 4)};
+      if(names && names.en) m.names = names; else m.name = name;
+      out.push(m);
+    }
+    return out.length ? out : null;
+  }
+  const menuKey = list => JSON.stringify(list.map(m => [m.id, nm(m), m.price, m.type, m.emoji || ""]));
+
+  let pendingImport = null;
+  function openImport(fileName, newMenu, entries){
+    const have = new Set(history.map(h => h.t));
+    const fresh = [], seen = new Set();
+    for(const e of entries){ if(!have.has(e.t) && !seen.has(e.t)){ fresh.push(e); seen.add(e.t); } }
+    const dup = entries.length - fresh.length;
+    const menuSame = newMenu && menuKey(newMenu) === menuKey(menu);
+    pendingImport = {newMenu: newMenu && !menuSame ? newMenu : null, fresh};
+
+    $("impFile").textContent = fileName;
+    // menu option
+    const mOk = !!pendingImport.newMenu;
+    $("impMenu").checked = mOk; $("impMenu").disabled = !mOk;
+    $("impMenuRow").classList.toggle("off", !mOk);
+    $("impMenuLbl").textContent = newMenu ? T("impMenuLbl")(newMenu.length) : T("impMenuLbl")(0);
+    $("impMenuSub").textContent = !newMenu ? T("impMenuNone") : menuSame ? T("impMenuSame")
+      : T("impMenuSub")(newMenu.map(m => nm(m)).join(", "));
+    if(!newMenu) $("impMenuLbl").textContent = T("menu");
+    // orders option
+    const oOk = fresh.length > 0;
+    $("impOrders").checked = oOk; $("impOrders").disabled = !oOk;
+    $("impOrdersRow").classList.toggle("off", !oOk);
+    $("impOrdersLbl").textContent = oOk ? T("impOrdersLbl")(fresh.length) : T("history");
+    $("impOrdersSub").textContent = !entries.length ? T("impOrdersEmpty") : !oOk ? T("impOrdersNone") : dup ? T("impOrdersSkip")(dup) : "";
+    updateImportNote();
+    $("impModal").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("impGo").focus({preventScroll:true});
+  }
+  function updateImportNote(){
+    const p = pendingImport;
+    const replacing = p && p.newMenu && $("impMenu").checked;
+    const lost = replacing && Object.keys(order).some(id => order[id] > 0 && !p.newMenu.some(m => m.id === id));
+    $("impNote").textContent = lost ? T("impOpenOrder") : "";
+    $("impGo").disabled = !(($("impMenu").checked && !$("impMenu").disabled) || ($("impOrders").checked && !$("impOrders").disabled));
+  }
+  function closeImport(){
+    $("impModal").hidden = true;
+    document.body.style.overflow = "";
+    pendingImport = null;
+    $("importJson").focus({preventScroll:true});
+  }
+  $("impMenu").addEventListener("change", updateImportNote);
+  $("impOrders").addEventListener("change", updateImportNote);
+  $("impCancel").addEventListener("click", () => { closeImport(); xmsg(T("importCancelled")); });
+  $("impModal").addEventListener("click", e => { if(e.target === $("impModal")){ closeImport(); xmsg(T("importCancelled")); } });
+  document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("impModal").hidden){ closeImport(); xmsg(T("importCancelled")); } });
+  $("impGo").addEventListener("click", () => {
+    const p = pendingImport; if(!p) return;
+    const msgs = [];
+    if(p.newMenu && $("impMenu").checked){
+      menu = p.newMenu.map(m => ({...m, names: m.names ? {...m.names} : undefined}));
+      menu.forEach(m => { if(!m.names) delete m.names; });
+      const ids = new Set(menu.map(m => m.id));
+      if(Object.keys(order).some(id => !ids.has(id))) order = {};
+      save(KEY_MENU, menu); save(KEY_ORDER, order);
+      if(editing) clearForm();
+      msgs.push(T("importedMenu"));
+    }
+    if(p.fresh.length && $("impOrders").checked){
+      history = history.concat(p.fresh).sort((a,b) => a.t - b.t);
+      if(history.length > HIST_MAX) history = history.slice(-HIST_MAX);
+      save(KEY_HIST, history);
+      period = "all";
+      msgs.push(T("imported")(p.fresh.length));
+    }
+    closeImport();
+    render();
+    xmsg(msgs.join(" "));
+  });
+
+  $("importJson").addEventListener("click", () => { $("importFile").value = ""; $("importFile").click(); });
+  $("importFile").addEventListener("change", async () => {
+    const file = $("importFile").files && $("importFile").files[0];
+    if(!file) return;
+    let text = "";
+    try{ text = await file.text(); }catch(e){ xmsg(T("importBad")); return; }
+    let data = null;
+    try{ data = JSON.parse(text); }catch(e){}
+    const entries = parseImport(text);
+    const newMenu = parseMenu(data);
+    if(!entries && !newMenu){ xmsg(T("importBad")); return; }
+    xmsg("");
+    openImport(file.name, newMenu, entries || []);
   });
 
   function render(bumpId){ renderKeys(bumpId); renderOrder(); renderHistory(); fitKeys(); }
@@ -1367,16 +1586,20 @@ input[type=text],input[type=number],select{
   $("jump").addEventListener("click", () => goTab(1));
 
   /* ---------- editor ---------- */
-  $("editToggle").addEventListener("click", () => {
-    editing = !editing;
+  function setEditing(on){
+    editing = on;
     app.classList.toggle("editing", editing);
-    $("editToggle").setAttribute("aria-pressed", editing);
-    $("editToggle").textContent = editing ? T("done") : T("editMenu");
+    document.body.classList.toggle("is-editing", editing);
+    $("editbar").hidden = !editing;
     if(!editing) clearForm();
-    goTab(0);
+    goTab(0, true);
     $("pMenu").scrollTop = 0;
+    if(editing) window.scrollTo(0, 0);
     fitKeys();
-  });
+    (editing ? $("editDone") : $("editStart")).focus({preventScroll:true});
+  }
+  $("editStart").addEventListener("click", () => setEditing(true));
+  $("editDone").addEventListener("click", () => setEditing(false));
 
   function refreshEditorText(){
     const m = editId && menu.find(x => x.id === editId);
