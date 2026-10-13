@@ -21,19 +21,21 @@ npm run preview  # serve the production build locally
 
 ## Deploying
 
-The build output in `dist/` is static — serve it from any web server. **HTTPS is required**:
-both camera access (barcode scanning) and installing the app to an iPhone home screen require a
-secure context with a trusted certificate (a self-signed cert will not work on iOS).
+The build output in `dist/` is static — serve it from any web server, at the domain root or
+inside a subdirectory (e.g. `example.com/callo/`), since every asset path, the manifest, and the
+service worker are relative to the page URL and routing is hash-based (`/#/scan`), so no
+server-side rewrite rules are needed for deep links. **HTTPS is required**: both camera access
+(barcode scanning) and installing the app to an iPhone home screen require a secure context with
+a trusted certificate (a self-signed cert will not work on iOS).
 
 A minimal [Caddy](https://caddyserver.com/) config that serves the build with automatic
-Let's Encrypt HTTPS and correctly falls back to `index.html` for client-side routes:
+Let's Encrypt HTTPS:
 
 ```
 callo.example.com {
     root * /var/www/callo/dist
     encode gzip
     file_server
-    try_files {path} /index.html
 }
 ```
 

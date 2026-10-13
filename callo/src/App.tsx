@@ -1,4 +1,4 @@
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
+import { HashRouter, Link, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { BarcodeScannerView } from './features/scanner/BarcodeScannerView'
 import { ManualEntryForm } from './features/product-lookup/ManualEntryForm'
@@ -8,7 +8,7 @@ import { SettingsView } from './features/settings/SettingsView'
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="app-shell">
         <header className="app-header">
           <h1>Callo</h1>
@@ -30,7 +30,7 @@ function App() {
           <Link to="/settings">Settings</Link>
         </nav>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
