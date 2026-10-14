@@ -3,8 +3,10 @@ import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
-  base: './',
+export default defineConfig(({ command }) => ({
+  // Relative base so the production build works from any subdirectory.
+  // Vite's dev server doesn't support a relative base, so keep it absolute there.
+  base: command === 'build' ? './' : '/',
   plugins: [
     react(),
     VitePWA({
@@ -60,4 +62,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))
